@@ -1,5 +1,8 @@
 #!/bin/bash
 
+echo "Edit the varibles and then remove this lines"
+exit 1
+
 #### MAKE SURE TO EDIT THE VALUES IN THE VARIABLES BELOW
 export DISK="/dev/disk/by-id/XXX"
 export hostname="zfstest"
