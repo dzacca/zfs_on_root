@@ -1,9 +1,12 @@
 #!/bin/bash
 
+#### MAKE SURE TO EDIT THE VALUES IN THE VARIABLES BELOW
 export DISK="/dev/disk/by-id/XXX"
-export SWAPSIZE="+4G"
 export hostname="zfstest"
 export NetIF="enp0s3"
+
+# Swapsize autocalculated to be = Mem size
+export SWAPSIZE=`free --giga|grep Mem|awk '{OFS="";print "+", $2 ,"G"}'`
 
 apt install --yes debootstrap gdisk zfsutils-linux vim git
 
