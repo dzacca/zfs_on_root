@@ -19,8 +19,10 @@ disk and the right amount of RAM so that the swap is set correctly.
 
 ``` bash
 gsettings set org.gnome.desktop.media-handling automount false
+sudo apt update && sudo apt install -y git vim
 
 sudo -i
+git clone https://github.com/dzacca/zfs_on_root.git
 
 bash from_live_cd.sh
 
