@@ -1,9 +1,9 @@
 #!/bin/bash
 
-DISK=/dev/disk/by-id/XXX
-SWAPSIZE="+4G"
-hostname="zfstest"
-NetIF="enp3s0"
+export DISK="/dev/disk/by-id/XXX"
+export SWAPSIZE="+4G"
+export hostname="zfstest"
+export NetIF="enp3s0"
 
 apt install --yes debootstrap gdisk zfsutils-linux
 
@@ -18,6 +18,7 @@ sgdisk     -n2:0:${SWAPSIZE}    -t2:8200 $DISK
 sgdisk     -n3:0:+2G      -t3:BE00 $DISK
 sgdisk     -n4:0:0        -t4:BF00 $DISK
 
+sync;sleep 2
 
 zpool create \
     -o ashift=12 \
@@ -47,6 +48,9 @@ zpool create \
 
 zfs create -o canmount=off -o mountpoint=none rpool/ROOT
 zfs create -o canmount=off -o mountpoint=none bpool/BOOT
+
+zpool list
+pause
 
 UUID=$(dd if=/dev/urandom bs=1 count=100 2>/dev/null |
     tr -dc 'a-z0-9' | cut -c-6)
