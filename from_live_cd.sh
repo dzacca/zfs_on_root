@@ -106,7 +106,7 @@ echo "127.0.0.1 $hostname" >>/mnt/etc/hosts
 echo "network:" >>/mnt/etc/netplan/01-netcfg.yaml
 echo "  version: 2" >>/mnt/etc/netplan/01-netcfg.yaml
 echo "  ethernets:" >>/mnt/etc/netplan/01-netcfg.yaml
-echo "    ${NetIF}" >>/mnt/etc/netplan/01-netcfg.yaml
+echo "    ${NetIF}:" >>/mnt/etc/netplan/01-netcfg.yaml
 echo "      dhcp4: true" >>/mnt/etc/netplan/01-netcfg.yaml
 
 echo "deb http://archive.ubuntu.com/ubuntu lunar main restricted universe multiverse" >/mnt/etc/apt/sources.list
