@@ -25,13 +25,17 @@ sudo -i
 git clone https://github.com/dzacca/zfs_on_root.git
 cd zfs_on_root
 
-bash from_live_cd.sh
+bash 1_from_live_cd.sh
 
-bash from_chroot.sh
+bash 2_from_chroot.sh
 
-bash from_live_cd2.sh
+bash 3_from_live_cd2.sh
 
-bash first_boot.sh
+zfspool export -a
+zfspool import -af
+zfspool list
+
+bash 4_first_boot.sh
 
 sudo usermod -p '*' root
 ```
