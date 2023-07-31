@@ -1,3 +1,9 @@
+sudo apt update
+
+gsettings set org.gnome.desktop.media-handling automount false
+
+sudo -i
+
 from_live_cd.sh
 from_chroot1.sh
 
