@@ -53,4 +53,4 @@ sleep 3
 
 sed -Ei "s|/mnt/?|/|" /etc/zfs/zfs-list.cache/*
 # need to exit from chroot now, temporarily disabled while testing the script
-#exit
+exit

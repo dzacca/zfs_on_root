@@ -23,6 +23,7 @@ sudo apt update && sudo apt install -y git vim
 
 sudo -i
 git clone https://github.com/dzacca/zfs_on_root.git
+cd zfs_on_root
 
 bash from_live_cd.sh
 
