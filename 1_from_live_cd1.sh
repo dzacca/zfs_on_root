@@ -5,7 +5,7 @@ export SWAPSIZE="+4G"
 export hostname="zfstest"
 export NetIF="enp0s3"
 
-apt install --yes debootstrap gdisk zfsutils-linux
+apt install --yes debootstrap gdisk zfsutils-linux vim git
 
 systemctl stop zed
 swapoff --all
@@ -50,7 +50,7 @@ zfs create -o canmount=off -o mountpoint=none rpool/ROOT
 zfs create -o canmount=off -o mountpoint=none bpool/BOOT
 
 zpool list
-pause
+sleep 5
 
 UUID=$(dd if=/dev/urandom bs=1 count=100 2>/dev/null |
     tr -dc 'a-z0-9' | cut -c-6)
