@@ -3,7 +3,7 @@
 This is a very basic set of scripts that I created to make it quicker for me
 to do set up VMs or play around with ZFS-based installation of Ubuntu.
 The scripts are based on the documentation from
-(OpenZFS)[https://openzfs.github.io/openzfs-docs/Getting%20Started/Ubuntu/Ubuntu%2022.04%20Root%20on%20ZFS.html#step-5-grub-installation],
+[OpenZFS](https://openzfs.github.io/openzfs-docs/Getting%20Started/Ubuntu/Ubuntu%2022.04%20Root%20on%20ZFS.html#step-5-grub-installation),
 single disk, with rpool encrypted with native ZFS encryption, and no ZSys
 installation (I don't use ZSys and it will be deprecated in any case).
 
