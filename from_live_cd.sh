@@ -113,4 +113,5 @@ echo "deb http://security.ubuntu.com/ubuntu lunar-security main restricted unive
 mount --make-private --rbind /dev  /mnt/dev
 mount --make-private --rbind /proc /mnt/proc
 mount --make-private --rbind /sys  /mnt/sys
+cp -a /root/zfs_on_root /mnt/root/
 chroot /mnt /usr/bin/env DISK=$DISK UUID=$UUID bash --login
