@@ -20,7 +20,7 @@ apt install --yes ubuntu-desktop
 
 rm /etc/netplan/01-netcfg.yaml
 
-echo "network:" >>/etc/netplan/01-network-manager-all.yaml
+echo "network:" >/etc/netplan/01-network-manager-all.yaml
 echo"  version: 2" >>/etc/netplan/01-network-manager-all.yaml
 echo"  renderer: NetworkManager" >>/etc/netplan/01-network-manager-all.yaml
 
