@@ -3,7 +3,7 @@
 export DISK="/dev/disk/by-id/XXX"
 export SWAPSIZE="+4G"
 export hostname="zfstest"
-export NetIF="enp3s0"
+export NetIF="enp0s3"
 
 apt install --yes debootstrap gdisk zfsutils-linux
 
