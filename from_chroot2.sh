@@ -8,7 +8,6 @@ touch /etc/zfs/zfs-list.cache/bpool
 touch /etc/zfs/zfs-list.cache/rpool
 zed -F &
 sleep 3
-fg
 
 sed -Ei "s|/mnt/?|/|" /etc/zfs/zfs-list.cache/*
 exit

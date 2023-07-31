@@ -12,6 +12,7 @@ from_live_cd.sh
 from_chroot1.sh
 
 vi /etc/default/grub
+``` shell
 # Add init_on_alloc=0 to: GRUB_CMDLINE_LINUX_DEFAULT
 # Save and quit (or see the next step).
 
@@ -22,7 +23,7 @@ vi /etc/default/grub
 # Remove quiet and splash from: GRUB_CMDLINE_LINUX_DEFAULT
 # Uncomment: GRUB_TERMINAL=console
 # Save and quit.
-
+```
 
 from_chroot2.sh
 from_live_cd2.sh
