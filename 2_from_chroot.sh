@@ -1,10 +1,8 @@
 #!/bin/bash
 #
 apt update
-dpkg-reconfigure locales tzdata keyboard-configuration console-setup
-apt install -y vim git
-
-apt install --yes dosfstools
+dpkg-reconfigure locales tzdata keyboard-configuration 
+apt install -y vim git dosfstools cryptsetup openssh-server
 
 mkdosfs -F 32 -s 1 -n EFI ${DISK}-part1
 mkdir /boot/efi
@@ -21,8 +19,8 @@ apt install --yes \
     shim-signed zfs-initramfs
 
 apt purge --yes os-prober
+echo "Setting temporary root password:"
 passwd
-apt install --yes cryptsetup openssh-server
 
 echo swap ${DISK}-part2 /dev/urandom \
       swap,cipher=aes-xts-plain64:sha256,size=512 >> /etc/crypttab
@@ -53,4 +51,4 @@ sleep 3
 
 sed -Ei "s|/mnt/?|/|" /etc/zfs/zfs-list.cache/*
 # need to exit from chroot now, temporarily disabled while testing the script
-exit
+logout
