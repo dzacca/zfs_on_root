@@ -25,7 +25,7 @@ sudo -i
 git clone https://github.com/dzacca/zfs_on_root.git
 cd zfs_on_root
 
-bash 1_from_live_cd.sh
+bash 1_from_live_cd1.sh
 
 bash 2_from_chroot.sh
 
