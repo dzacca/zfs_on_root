@@ -3,6 +3,7 @@
 export RELEASE="mantic"
 export DISK="/dev/disk/by-id/"
 export PASSPHRASE="SomeRandomKey"
+export PASSWORD="mypassword"
 export HOSTNAME="myhost"
 export username="diego"
 
@@ -100,7 +101,7 @@ echo "127.0.1.1       $hostname" >> /mnt/etc/hosts
 
 # Set root passwd
 chroot /mnt /bin/bash -x <<-EOCHROOT
-  passwd
+  echo -e "root:$PASSWORD" | chpasswd -c SHA256
 EOCHROOT
 
 # Set up APT sources
@@ -126,7 +127,17 @@ chroot /mnt /bin/bash -x <<-EOCHROOT
   apt update
   apt upgrade -y
   apt install -y --no-install-recommends linux-generic locales keyboard-configuration console-setup
-  dpkg-reconfigure locales tzdata keyboard-configuration console-setup
+  #dpkg-reconfigure locales tzdata keyboard-configuration console-setup
+EOCHROOT
+
+chroot "$mountpoint" /bin/bash -x <<-EOCHROOT
+		##4.5 configure basic system
+		locale-gen en_US.UTF-8 $locale
+		echo 'LANG="$locale"' > /etc/default/locale
+
+		##set timezone
+		ln -fs /usr/share/zoneinfo/"$timezone" /etc/localtime
+		dpkg-reconfigure tzdata
 EOCHROOT
 
 # ZFS Configuration
@@ -216,12 +227,13 @@ chroot /mnt /bin/bash -x <<-EOCHROOT
   echo "diego ALL=(ALL) NOPASSWD: ALL" >/etc/sudoers.d/${username}
   chown root:root /etc/sudoers.d/${username}
   chmod 400 /etc/sudoers.d/${username}
+  echo -e "$username:$PASSWORD" | chpasswd
 EOCHROOT
 
 # Install desktop bundle
 chroot /mnt /bin/bash -x <<-EOCHROOT
   apt install -y nala
-  nala -y dist-upgrade
+  nala dist-upgrade -y
   nala install -y ubuntu-desktop
 EOCHROOT
 
