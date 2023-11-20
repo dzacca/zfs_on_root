@@ -238,7 +238,7 @@ chroot /mnt /bin/bash -x <<-EOCHROOT
 EOCHROOT
 
 # Disable log gzipping as we already use compresion at filesystem level
-chroom /mnt /bin/bash -x <<-EOCHROOT
+chroot /mnt /bin/bash -x <<-EOCHROOT
   for file in /etc/logrotate.d/* ; do
     if grep -Eq "(^|[^#y])compress" "$file" ; then
         sed -i -r "s/(^|[^#y])(compress)/\1#\2/" "$file"
