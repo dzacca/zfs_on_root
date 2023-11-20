@@ -26,7 +26,7 @@ export SWAPSIZE=`free --giga|grep Mem|awk '{OFS="";print "+", $2 ,"G"}'`
 # Start installation
 
 apt update
-apt install debootstrap gdisk zfsutils-linux vim git
+apt -y install debootstrap gdisk zfsutils-linux vim git
 
 zgenhostid -f 0x00bab10c
 
@@ -124,7 +124,7 @@ EOF
 # console properties
 chroot /mnt /bin/bash -x <<-EOCHROOT
   apt update
-  apt upgrade
+  apt upgrade -y
   apt install -y --no-install-recommends linux-generic locales keyboard-configuration console-setup
   dpkg-reconfigure locales tzdata keyboard-configuration console-setup
 EOCHROOT
