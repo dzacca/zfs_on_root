@@ -6,7 +6,7 @@ export DISK="/dev/disk/by-id/"
 export PASSPHRASE="SomeRandomKey"
 export PASSWORD="mypassword"
 export HOSTNAME="myhost"
-export username="diego"
+export USERNAME="diego"
 
 ########################
 # Change ${RUN} to true to execute the script
@@ -238,14 +238,14 @@ EOCHROOT
 
 # Create user
 chroot /mnt /bin/bash -x <<-EOCHROOT
-  adduser --disabled-password --gecos "" $username
-  cp -a /etc/skel/. /home/$username
-  chown -R $username:$username /home/$username
-  usermod -a -G adm,cdrom,dip,lpadmin,lxd,plugdev,sambashare,sudo $username
-  echo "diego ALL=(ALL) NOPASSWD: ALL" >/etc/sudoers.d/${username}
-  chown root:root /etc/sudoers.d/${username}
-  chmod 400 /etc/sudoers.d/${username}
-  echo -e "$username:$PASSWORD" | chpasswd
+  adduser --disabled-password --gecos "" ${USERNAME}
+  cp -a /etc/skel/. /home/${USERNAME}
+  chown -R ${USERNAME}:${USERNAME} /home/${USERNAME}
+  usermod -a -G adm,cdrom,dip,lpadmin,lxd,plugdev,sambashare,sudo ${USERNAME}
+  echo "diego ALL=(ALL) NOPASSWD: ALL" >/etc/sudoers.d/${USERNAME}
+  chown root:root /etc/sudoers.d/${USERNAME}
+  chmod 400 /etc/sudoers.d/${USERNAME}
+  echo -e "${USERNAME}:$PASSWORD" | chpasswd
 EOCHROOT
 
 # Install desktop bundle
