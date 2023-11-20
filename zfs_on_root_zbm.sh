@@ -187,7 +187,7 @@ chroot /mnt /bin/bash -x <<-EOCHROOT
   rm /boot/refind_linux.conf
 EOCHROOT
 
-cat << EOF > /boot/efi/EFI/ZBM/refind_linux.conf
+cat << EOF >> /boot/efi/EFI/ZBM/refind_linux.conf
 menuentry "Ubuntu (ZBM)" {
     loader /EFI/ZBM/VMLINUZ.EFI
     icon /EFI/refind/themes/refind-theme-regular/icons/256-96/os_ubuntu.png
