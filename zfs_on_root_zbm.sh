@@ -11,6 +11,7 @@ export username="diego"
 ########################
 # Change ${RUN} to true to execute the script
 RUN="false"
+
 ########################################################################
 ########################################################################
 ########################################################################
@@ -237,7 +238,7 @@ EOCHROOT
 
 # Create user
 chroot /mnt /bin/bash -x <<-EOCHROOT
-  adduser $username
+  adduser --disabled-password --gecos "" $username
   cp -a /etc/skel/. /home/$username
   chown -R $username:$username /home/$username
   usermod -a -G adm,cdrom,dip,lpadmin,lxd,plugdev,sambashare,sudo $username
