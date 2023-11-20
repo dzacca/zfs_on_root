@@ -1,11 +1,23 @@
 #!/bin/bash
 #
+# Variables - Populate/tweak this before launching the script
 export RELEASE="mantic"
 export DISK="/dev/disk/by-id/"
 export PASSPHRASE="SomeRandomKey"
 export PASSWORD="mypassword"
 export HOSTNAME="myhost"
 export username="diego"
+
+########################
+# Change ${RUN} to true to execute the script
+RUN="false"
+########################################################################
+########################################################################
+########################################################################
+if [[ ${RUN} =~ "false" ]];
+then
+  exit 1
+fi
 
 source /etc/os-release
 export ID
