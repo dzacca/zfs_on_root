@@ -174,7 +174,7 @@ chroot /mnt /bin/bash -x <<-EOCHROOT
   curl -o /boot/efi/EFI/ZBM/VMLINUZ.EFI -L https://get.zfsbootmenu.org/efi
   cp /boot/efi/EFI/ZBM/VMLINUZ.EFI /boot/efi/EFI/ZBM/VMLINUZ-BACKUP.EFI
   mount -t efivarfs efivarfs /sys/firmware/efi/efivars
-  apt install -y efibootmgr refind
+  apt install -y efibootmgr
   efibootmgr -c -d "$BOOT_DISK" -p "$BOOT_PART" \
     -L "ZFSBootMenu (Backup)" \
     -l '\EFI\ZBM\VMLINUZ-BACKUP.EFI'
@@ -182,9 +182,13 @@ chroot /mnt /bin/bash -x <<-EOCHROOT
   efibootmgr -c -d "$BOOT_DISK" -p "$BOOT_PART" \
     -L "ZFSBootMenu" \
     -l '\EFI\ZBM\VMLINUZ.EFI'
-
+  apt install -y refind
   refind-install
-  rm /boot/refind_linux.conf
+  if [[ -a /boot/refind_linux.conf ]]; 
+  then
+    rm /boot/refind_linux.conf
+  fi
+  bash -c "$(curl -fsSL https://raw.githubusercontent.com/bobafetthotmail/refind-theme-regular/master/install.sh)"
 EOCHROOT
 
 cat << EOF >> /boot/efi/EFI/ZBM/refind_linux.conf
@@ -200,6 +204,7 @@ menuentry "Ubuntu (ZBM Menu)" {
     options "quit loglevel=0 zbm.show"
 }
 EOF
+sync
 
 # Setup swap partition
 echo swap ${DISK}-part2 /dev/urandom \
