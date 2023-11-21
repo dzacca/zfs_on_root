@@ -322,7 +322,7 @@ umount -n -R /mnt
 
 zpool export zroot
 
-if [[ REBOOT =~ "true" ]];
+if [[ ${REBOOT} =~ "true" ]];
 then
   reboot
 fi
