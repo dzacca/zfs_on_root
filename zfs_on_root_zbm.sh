@@ -234,8 +234,8 @@ rm -rf refind-theme-regular/{src,.git}
 rm refind-theme-regular/install.sh
 rm -rf /boot/efi/EFI/refind/{regular-theme,refind-theme-regular}
 rm -rf /boot/efi/EFI/refind/themes/{regular-theme,refind-theme-regular}
-mkdir -p /boot/efi/EFI/refind/themes
-cp -r refind-theme-regular /mnt/boot/efi/EFI/refind/themes/
+mkdir -p /boot/efi/EFI/refind/themes; sync
+cp -r refind-theme-regular /mnt/boot/efi/EFI/refind/themes/; sync
 cat refind-theme-regular/theme.conf | sed -e '/128/ s/^/#/' \
   -e '/48/ s/^/#/' \
   -e '/ 96/ s/^#//' \
