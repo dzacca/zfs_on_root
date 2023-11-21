@@ -281,6 +281,15 @@ chroot /mnt /bin/bash -x <<-EOCHROOT
     fi
 EOCHROOT
 
+# re-lock root account
+disable_root_login() {
+  chroot /mnt /bin/bash -x <<-EOCHROOT
+  usermod -p '*' root
+}
+EOCHROOT
+
+disable_root_login
+
 umount -n -R /mnt
 sync; sleep 5
 umount -n -R /mnt
