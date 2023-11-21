@@ -217,7 +217,7 @@ chroot /mnt /bin/bash -x <<-EOCHROOT
   bash -c "$(curl -fsSL https://raw.githubusercontent.com/bobafetthotmail/refind-theme-regular/master/install.sh)"
 EOCHROOT
 
-cat << EOF >> /boot/efi/EFI/refind/refind_linux.conf
+cat << EOF >> /mnt/boot/efi/EFI/refind/refind_linux.conf
 menuentry "Ubuntu (ZBM)" {
     loader /EFI/ZBM/VMLINUZ.EFI
     icon /EFI/refind/themes/refind-theme-regular/icons/256-96/os_ubuntu.png
