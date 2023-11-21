@@ -227,24 +227,26 @@ chroot /mnt /bin/bash -x <<-EOCHROOT
 EOCHROOT
 
 # Install rEFInd regular theme (Dark)
-cd /root
-apt install -y git
-git clone https://github.com/bobafetthotmail/refind-theme-regular.git
-rm -rf refind-theme-regular/{src,.git}
-rm refind-theme-regular/install.sh
-rm -rf /boot/efi/EFI/refind/{regular-theme,refind-theme-regular}
-rm -rf /boot/efi/EFI/refind/themes/{regular-theme,refind-theme-regular}
-mkdir -p /boot/efi/EFI/refind/themes; sync
-cp -r refind-theme-regular /mnt/boot/efi/EFI/refind/themes/; sync
-cat refind-theme-regular/theme.conf | sed -e '/128/ s/^/#/' \
-  -e '/48/ s/^/#/' \
-  -e '/ 96/ s/^#//' \
-  -e '/ 256/ s/^#//' \
-  -e '/256-96.*dark/ s/^#//' \
-  -e '/icons_dir.*256/ s/^#//' >/mnt/boot/efi/EFI/refind/themes/refind-theme-regular/theme.conf
+install_refind(){
+  cd /root
+  apt install -y git
+  git clone https://github.com/bobafetthotmail/refind-theme-regular.git
+  rm -rf refind-theme-regular/{src,.git}
+  rm refind-theme-regular/install.sh
+  rm -rf /mnt/boot/efi/EFI/refind/{regular-theme,refind-theme-regular}
+  rm -rf /mnt/boot/efi/EFI/refind/themes/{regular-theme,refind-theme-regular}
+  mkdir -p /mnt/boot/efi/EFI/refind/themes; sync
+  sleep 2
+  cp -r refind-theme-regular /mnt/boot/efi/EFI/refind/themes/; sync
+  sleep 2
+  cat refind-theme-regular/theme.conf | sed -e '/128/ s/^/#/' \
+    -e '/48/ s/^/#/' \
+    -e '/ 96/ s/^#//' \
+    -e '/ 256/ s/^#//' \
+    -e '/256-96.*dark/ s/^#//' \
+    -e '/icons_dir.*256/ s/^#//' >/mnt/boot/efi/EFI/refind/themes/refind-theme-regular/theme.conf
 
-
-cat << EOF >> /mnt/boot/efi/EFI/refind/refind.conf
+  cat << EOF >> /mnt/boot/efi/EFI/refind/refind.conf
 menuentry "Ubuntu (ZBM)" {
     loader /EFI/ZBM/VMLINUZ.EFI
     icon /EFI/refind/themes/refind-theme-regular/icons/256-96/os_ubuntu.png
@@ -259,12 +261,13 @@ menuentry "Ubuntu (ZBM Menu)" {
 
 include themes/refind-theme-regular/theme.conf
 EOF
-sync
 
-if [[ ${DEBUG} =~ "true" ]];
-then
-  read -p "Finished w/ rEFInd... waiting."
-fi
+  if [[ ${DEBUG} =~ "true" ]];
+  then
+    read -p "Finished w/ rEFInd... waiting."
+  fi
+}
+install_refind
 
 # Setup swap partition
 echo swap ${DISK}-part2 /dev/urandom \
