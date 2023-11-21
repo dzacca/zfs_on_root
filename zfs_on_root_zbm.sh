@@ -314,6 +314,7 @@ disable_root_login() {
   chroot /mnt /bin/bash -x <<-EOCHROOT
   usermod -p '*' root
 EOCHROOT
+}
 
 disable_root_login
 
