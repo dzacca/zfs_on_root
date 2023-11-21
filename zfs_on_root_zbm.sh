@@ -222,8 +222,26 @@ chroot /mnt /bin/bash -x <<-EOCHROOT
   then
     rm /boot/refind_linux.conf
   fi
-  bash -c "$(curl -fsSL https://raw.githubusercontent.com/bobafetthotmail/refind-theme-regular/master/install.sh)"
+
+  #bash -c "$(curl -fsSL https://raw.githubusercontent.com/bobafetthotmail/refind-theme-regular/master/install.sh)"
 EOCHROOT
+
+# Install rEFInd regular theme (Dark)
+cd /root
+git clone https://github.com/bobafetthotmail/refind-theme-regular.git
+rm -rf refind-theme-regular/{src,.git}
+rm refind-theme-regular/install.sh
+rm -rf /boot/efi/EFI/refind/{regular-theme,refind-theme-regular}
+rm -rf /boot/efi/EFI/refind/themes/{regular-theme,refind-theme-regular}
+mkdir -p /boot/efi/EFI/refind/themes
+cp -r refind-theme-regular /mnt/boot/efi/EFI/refind/themes/
+cat refind-theme-regular/theme.conf | sed -e '/128/ s/^/#/' \
+  -e '/48/ s/^/#/' \
+  -e '/ 96/ s/^#//' \
+  -e '/ 256/ s/^#//' \
+  -e '/256-96.*dark/ s/^#//' \
+  -e '/icons_dir.*256/ s/^#//' >/mnt/boot/efi/EFI/refind/themes/refind-theme-regular/theme.conf
+
 
 cat << EOF >> /mnt/boot/efi/EFI/refind/refind.conf
 menuentry "Ubuntu (ZBM)" {
@@ -237,6 +255,8 @@ menuentry "Ubuntu (ZBM Menu)" {
     icon /EFI/refind/themes/refind-theme-regular/icons/256-96/os_ubuntu.png
     options "quit loglevel=0 zbm.show"
 }
+
+include themes/refind-theme-regular/theme.conf
 EOF
 sync
 
