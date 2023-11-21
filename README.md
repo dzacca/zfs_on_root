@@ -31,7 +31,7 @@ cd
 apt update && sudo apt install -y git vim
 git clone https://github.com/dzacca/zfs_on_root.git
 cd zfs_on_root
-vi zfs_on_root_sbm.sh
+vi zfs_on_root_zbm.sh
 ```
 
 Edit the variables at the beginning of the file and make sure to change RUN to true, or the script will exit without doing anything.
