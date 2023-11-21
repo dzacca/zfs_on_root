@@ -27,6 +27,7 @@ disk and setup the initial variables.
 ```bash
 gsettings set org.gnome.desktop.media-handling automount false
 sudo -i 
+cd
 apt update && sudo apt install -y git vim
 git clone https://github.com/dzacca/zfs_on_root.git
 cd zfs_on_root
