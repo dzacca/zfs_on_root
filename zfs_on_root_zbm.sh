@@ -6,7 +6,7 @@ export DISK="/dev/disk/by-id/"
 export PASSPHRASE="SomeRandomKey"
 export PASSWORD="mypassword"
 export HOSTNAME="myhost"
-export USERNAME="diego"
+export USERNAME="myuser"
 
 ########################
 # Change ${RUN} to true to execute the script
@@ -197,6 +197,8 @@ chroot /mnt /bin/bash -x <<-EOCHROOT
   efibootmgr -c -d "$BOOT_DISK" -p "$BOOT_PART" \
     -L "ZFSBootMenu" \
     -l '\EFI\ZBM\VMLINUZ.EFI'
+
+  sync; sleep 1  
   apt install -y refind
   refind-install
   if [[ -a /boot/refind_linux.conf ]]; 
@@ -270,6 +272,7 @@ sync; sleep 5
 umount -n -R /mnt
 
 zpool export zroot
+
 if [[ REBOOT =~ "true" ]];
 then
   reboot
