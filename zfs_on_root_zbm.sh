@@ -1,4 +1,4 @@
-
+#!/bin/bash
 #
 ########################
 # Change ${RUN} to true to execute the script
