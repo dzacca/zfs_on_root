@@ -1,41 +1,61 @@
 # ZFS_ON_ROOT
-## for Ubuntu 23.04
-This is a very basic set of scripts that I created to make it quicker for me
-to do set up VMs or play around with ZFS-based installation of Ubuntu.
-The scripts are based on the documentation from
-[OpenZFS](https://openzfs.github.io/openzfs-docs/Getting%20Started/Ubuntu/Ubuntu%2022.04%20Root%20on%20ZFS.html#step-5-grub-installation),
-single disk, with rpool encrypted with native ZFS encryption, and no ZSys
-installation (I don't use ZSys and it will be deprecated in any case).
 
-These are not meant for production use, there's no documentation at this stage
-and I don't know if and how I will evolve them. Feel free to provide feedback,
-open issues, or send pull requests. I don't have much time to polish things up
-se this repository is likely to stay in a MVP stage pretty much forever.
+## for Ubuntu 23.04 and higher
 
+This is a very basic script that I created to make it quicker for me
+to set up VMs or play around with ZFS-based installation of Ubuntu.
+The script is based on the documentation from
+[OpenZFS](https://openzfs.github.io/openzfs-docs/Getting%20Started/Ubuntu/Ubuntu%2022.04%20Root%20on%20ZFS.html#step-5-grub-installation), [ZFSBootMenu](https://docs.zfsbootmenu.org/en/v2.2.x/index.html), and with some ideas taken from  [ubuntu-server-zfsbootmenu](https://github.hscsec.cn/Sithuk/ubuntu-server-zfsbootmenu).
+The script currently install Ubuntu on a single disk, with zpool encrypted with native ZFS encryption, and no ZSys installation (I don't use ZSys and it will be deprecated in any case). The layout of the partition is a modified version of what used by ZFSBootMenu as I do create the following:
+
+- Partition 1: EFI
+- Partition 2: Swap (size is automatically calcualated by the script based on the amount of memory you have
+- Partition 3: zroot
+
+The script is still work in progress and is not yet meant for production use.
+There's no documentation at this stage, although the script is pretty much self-explanatory.
+
+Feel free to provide feedback, open issues, or send pull requests.
 
 ### Important
-You need to update the variables in `from_live_cd.sh` to point to the correct
-disk and the right amount of RAM so that the swap is set correctly.
 
-``` bash
+You need to update the variables in `zfs_on_root_zbm.sh` to point to the correct
+disk and setup the initial variables.
+
+### Usage
+
+```bash
 gsettings set org.gnome.desktop.media-handling automount false
-sudo apt update && sudo apt install -y git vim
-
-sudo -i
+sudo -i 
+apt update && sudo apt install -y git vim
 git clone https://github.com/dzacca/zfs_on_root.git
 cd zfs_on_root
-
-bash 1_from_live_cd1.sh
-
-bash 2_from_chroot.sh
-
-bash 3_from_live_cd2.sh
-
-zfspool export -a
-zfspool import -af
-zfspool list
-
-bash 4_first_boot.sh
-
-sudo usermod -p '*' root
+vi zfs_on_root_sbm.sh
 ```
+
+Edit the variables at the beginning of the file and make sure to change RUN to true, or the script will exit without doing anything.
+
+```
+########################
+# Change ${RUN} to true to execute the script
+RUN="false"
+
+# Variables - Populate/tweak this before launching the script
+export RELEASE="mantic"
+export DISK="/dev/disk/by-id/"
+export PASSPHRASE="SomeRandomKey"
+export PASSWORD="mypassword"
+export HOSTNAME="myhost"
+export USERNAME="myuser"
+
+## Auto-reboot at the end of installation? (true/false)
+REBOOT="false" 
+DEBUG="false"
+```
+
+as root, execute the script `./zfs_on_root_zbm.sh`
+
+### To Do
+
+- Refactor the script to use functions and make it more readable
+- add options for more customisation
