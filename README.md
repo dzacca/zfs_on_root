@@ -57,6 +57,6 @@ DEBUG="false"
 as root, execute the script `./zfs_on_root_zbm.sh`
 
 ### To Do
-
+- fix rEFInd theme installation. Will need to use the steps from the manual installation and not the quick install from the theme's install script.
 - Refactor the script to use functions and make it more readable
 - add options for more customisation
