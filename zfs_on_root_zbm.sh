@@ -228,6 +228,7 @@ EOCHROOT
 
 # Install rEFInd regular theme (Dark)
 cd /root
+apt install -y git
 git clone https://github.com/bobafetthotmail/refind-theme-regular.git
 rm -rf refind-theme-regular/{src,.git}
 rm refind-theme-regular/install.sh
