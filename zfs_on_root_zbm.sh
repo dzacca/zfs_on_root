@@ -1,5 +1,9 @@
 #!/bin/bash
 #
+########################
+# Change ${RUN} to true to execute the script
+RUN="false"
+
 # Variables - Populate/tweak this before launching the script
 export RELEASE="mantic"
 export DISK="/dev/disk/by-id/"
@@ -8,12 +12,9 @@ export PASSWORD="mypassword"
 export HOSTNAME="myhost"
 export USERNAME="myuser"
 
-########################
-# Change ${RUN} to true to execute the script
-RUN="false"
-
 ## Auto-reboot at the end of installation? (true/false)
 REBOOT="false" 
+DEBUG="false"
 ########################################################################
 ########################################################################
 ########################################################################
@@ -199,6 +200,14 @@ chroot /mnt /bin/bash -x <<-EOCHROOT
     -l '\EFI\ZBM\VMLINUZ.EFI'
 
   sync; sleep 1  
+EOCHROOT
+
+if [[ ${DEBUG} =~ "true" ]];
+then
+  read -p "Finished w/ efibootmgr... waiting."
+fi
+
+chroot /mnt /bin/bash -x <<-EOCHROOT
   apt install -y refind
   refind-install
   if [[ -a /boot/refind_linux.conf ]]; 
@@ -222,6 +231,11 @@ menuentry "Ubuntu (ZBM Menu)" {
 }
 EOF
 sync
+
+if [[ ${DEBUG} =~ "true" ]];
+then
+  read -p "Finished w/ rEFInd... waiting."
+fi
 
 # Setup swap partition
 echo swap ${DISK}-part2 /dev/urandom \
