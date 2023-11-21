@@ -11,6 +11,7 @@ export PASSPHRASE="SomeRandomKey"
 export PASSWORD="mypassword"
 export HOSTNAME="myhost"
 export USERNAME="myuser"
+export NALA="true" # Install and use nala instead of apt within the chrooted environment
 
 ## Auto-reboot at the end of installation? (true/false)
 REBOOT="false" 
@@ -21,6 +22,13 @@ DEBUG="false"
 if [[ ${RUN} =~ "false" ]];
 then
   exit 1
+fi
+
+if [[ ${NALA} =~ "true" ]];
+then
+  export APT="/usr/bin/nala"
+else
+  export APT="/usr/bin/apt"
 fi
 
 source /etc/os-release
@@ -43,7 +51,7 @@ export SWAPSIZE=`free --giga|grep Mem|awk '{OFS="";print "+", $2 ,"G"}'`
 # Start installation
 
 apt update
-apt -y install debootstrap gdisk zfsutils-linux vim git
+apt -y install debootstrap gdisk zfsutils-linux vim git curl
 
 zgenhostid -f 0x00bab10c
 
@@ -142,7 +150,7 @@ EOF
 chroot /mnt /bin/bash -x <<-EOCHROOT
   apt update
   apt upgrade -y
-  apt install -y --no-install-recommends linux-generic locales keyboard-configuration console-setup
+  apt install -y --no-install-recommends linux-generic locales keyboard-configuration console-setup curl nala
   #dpkg-reconfigure locales tzdata keyboard-configuration console-setup
 EOCHROOT
 
@@ -158,7 +166,7 @@ EOCHROOT
 
 # ZFS Configuration
 chroot /mnt /bin/bash -x <<-EOCHROOT
-  apt install -y dosfstools zfs-initramfs zfsutils-linux curl vim wget
+  ${APT} install -y dosfstools zfs-initramfs zfsutils-linux curl vim wget
   systemctl enable zfs.target
   systemctl enable zfs-import-cache
   systemctl enable zfs-mount
@@ -190,7 +198,7 @@ chroot /mnt /bin/bash -x <<-EOCHROOT
   curl -o /boot/efi/EFI/ZBM/VMLINUZ.EFI -L https://get.zfsbootmenu.org/efi
   cp /boot/efi/EFI/ZBM/VMLINUZ.EFI /boot/efi/EFI/ZBM/VMLINUZ-BACKUP.EFI
   mount -t efivarfs efivarfs /sys/firmware/efi/efivars
-  apt install -y efibootmgr
+  ${APT} install -y efibootmgr
   efibootmgr -c -d "$BOOT_DISK" -p "$BOOT_PART" \
     -L "ZFSBootMenu (Backup)" \
     -l '\EFI\ZBM\VMLINUZ-BACKUP.EFI'
@@ -208,7 +216,7 @@ then
 fi
 
 chroot /mnt /bin/bash -x <<-EOCHROOT
-  apt install -y refind
+  ${APT} install -y refind curl
   refind-install
   if [[ -a /boot/refind_linux.conf ]]; 
   then
@@ -268,9 +276,8 @@ EOCHROOT
 
 # Install desktop bundle
 chroot /mnt /bin/bash -x <<-EOCHROOT
-  apt install -y nala
-  nala dist-upgrade -y
-  nala install -y ubuntu-desktop
+  ${APT} dist-upgrade -y
+  ${APT} install -y ubuntu-desktop
 EOCHROOT
 
 # Disable log gzipping as we already use compresion at filesystem level
