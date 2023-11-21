@@ -12,6 +12,8 @@ export USERNAME="diego"
 # Change ${RUN} to true to execute the script
 RUN="false"
 
+## Auto-reboot at the end of installation? (true/false)
+REBOOT="false" 
 ########################################################################
 ########################################################################
 ########################################################################
@@ -268,4 +270,7 @@ sync; sleep 5
 umount -n -R /mnt
 
 zpool export zroot
-reboot
+if [[ REBOOT =~ "true" ]];
+then
+  reboot
+fi
