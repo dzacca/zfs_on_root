@@ -200,7 +200,7 @@ ZBM_install() {
   mkfs.vfat -F32 "$BOOT_DEVICE"
 EOCHROOT
 
-  cat <<EOF >>/etc/fstab
+  cat <<EOF >>${MOUNTPOINT}/etc/fstab
 $(blkid | grep "$BOOT_DEVICE" | cut -d ' ' -f 2) /boot/efi vfat defaults 0 0
 EOF
 
