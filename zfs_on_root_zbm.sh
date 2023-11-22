@@ -6,7 +6,7 @@ RUN="false"
 
 # Variables - Populate/tweak this before launching the script
 export RELEASE="mantic"
-export DISK="/dev/disk/by-id/"
+export DISK="sda" # Enter the disk name only (sda, sdb, nvme1, etc)
 export PASSPHRASE="SomeRandomKey"
 export PASSWORD="mypassword"
 export HOSTNAME="myhost"
@@ -27,6 +27,8 @@ if [[ ${RUN} =~ "false" ]]; then
   exit 1
 fi
 
+DISKID=$(ls -al /dev/disk/by-id | grep ${DISK} | awk '{print $9}' | head -1)
+export DISKID
 if [[ ${NALA} =~ "true" ]]; then
   export APT="/usr/bin/nala"
 else
@@ -35,15 +37,15 @@ fi
 
 source /etc/os-release
 export ID
-export BOOT_DISK="${DISK}"
+export BOOT_DISK="${DISKID}"
 export BOOT_PART="1"
 export BOOT_DEVICE="${BOOT_DISK}-part${BOOT_PART}"
 
-export SWAP_DISK="${DISK}"
+export SWAP_DISK="${DISKID}"
 export SWAP_PART="2"
 export SWAP_DEVICE="${SWAP_DISK}-part${SWAP_PART}"
 
-export POOL_DISK="${DISK}"
+export POOL_DISK="${DISKID}"
 export POOL_PART="3"
 export POOL_DEVICE="${POOL_DISK}-part${POOL_PART}"
 
@@ -61,9 +63,9 @@ initialize() {
 
 # Disk preparation
 disk_prepare() {
-  wipefs -a ${DISK}
-  blkdiscard -f ${DISK}
-  sgdisk --zap-all ${DISK}
+  wipefs -a ${DISKID}
+  blkdiscard -f ${DISKID}
+  sgdisk --zap-all ${DISKID}
   sync
   sleep 2
 
@@ -218,11 +220,11 @@ EOCHROOT
 EFI_install() {
   chroot "${MOUNTPOINT}" /bin/bash -x <<-EOCHROOT
 ${APT} install -y efibootmgr
-efibootmgr -c -d "$BOOT_DISK" -p "$BOOT_PART" \
+efibootmgr -c -d "$DISK" -p "$BOOT_PART" \
   -L "ZFSBootMenu (Backup)" \
   -l '\EFI\ZBM\VMLINUZ-BACKUP.EFI'
 
-efibootmgr -c -d "$BOOT_DISK" -p "$BOOT_PART" \
+efibootmgr -c -d "$DISK" -p "$BOOT_PART" \
   -L "ZFSBootMenu" \
   -l '\EFI\ZBM\VMLINUZ.EFI'
 
