@@ -29,6 +29,7 @@ fi
 
 DISKID=/dev/disk/by-id/$(ls -al /dev/disk/by-id | grep ${DISK} | awk '{print $9}' | head -1)
 export DISKID
+DISK="/dev/${DISK}"
 if [[ ${NALA} =~ "true" ]]; then
   export APT="/usr/bin/nala"
 else
@@ -220,11 +221,11 @@ EOCHROOT
 EFI_install() {
   chroot "${MOUNTPOINT}" /bin/bash -x <<-EOCHROOT
 ${APT} install -y efibootmgr
-efibootmgr -c -d /dev/"$DISK" -p "$BOOT_PART" \
+efibootmgr -c -d "$DISK" -p "$BOOT_PART" \
   -L "ZFSBootMenu (Backup)" \
   -l '\EFI\ZBM\VMLINUZ-BACKUP.EFI'
 
-efibootmgr -c -d /dev/"$DISK" -p "$BOOT_PART" \
+efibootmgr -c -d "$DISK" -p "$BOOT_PART" \
   -L "ZFSBootMenu" \
   -l '\EFI\ZBM\VMLINUZ.EFI'
 
@@ -295,7 +296,7 @@ EOF
 # Setup swap partition
 
 create_swap() {
-  echo swap ${DISK}-part2 /dev/urandom \
+  echo swap "${DISKID}"-part2 /dev/urandom \
     swap,cipher=aes-xts-plain64:sha256,size=512 >>"${MOUNTPOINT}"/etc/crypttab
   echo /dev/mapper/swap none swap defaults 0 0 >>"${MOUNTPOINT}"/etc/fstab
 }
