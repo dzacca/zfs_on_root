@@ -215,7 +215,7 @@ ZBM_install() {
   # Create a vfat filesystem
   # Create an fstab entry and mount
   cat <<EOF >>${MOUNTPOINT}/etc/fstab
-$(blkid | grep "${DISK}2" | cut -d ' ' -f 2) /boot/efi vfat defaults 0 0
+$(blkid | grep "${DISK}${BOOT_PART}" | cut -d ' ' -f 2) /boot/efi vfat defaults 0 0
 EOF
 
   mkdir -p "${MOUNTPOINT}"/boot/efi
