@@ -18,6 +18,9 @@ export TIMEZONE="Europe/Rome" #New install timezone setting.
 
 ## Auto-reboot at the end of installation? (true/false)
 REBOOT="false"
+
+########################################################################
+#### Enable/disable debug. Only used during the development phase.
 DEBUG="false"
 ########################################################################
 ########################################################################
@@ -385,3 +388,4 @@ cleanup
 if [[ ${REBOOT} =~ "true" ]]; then
   reboot
 fi
+
