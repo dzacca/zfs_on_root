@@ -187,7 +187,6 @@ EOF
   apt update
   apt upgrade -y
   apt install -y --no-install-recommends linux-generic locales keyboard-configuration console-setup curl nala
-  #dpkg-reconfigure locales tzdata keyboard-configuration console-setup
 EOCHROOT
 
   chroot "$MOUNTPOINT" /bin/bash -x <<-EOCHROOT
@@ -197,7 +196,7 @@ EOCHROOT
 
 		##set timezone
 		ln -fs /usr/share/zoneinfo/"$TIMEZONE" /etc/localtime
-		dpkg-reconfigure tzdata
+		:dpkg-reconfigure locales tzdata keyboard-configuration console-setup
 EOCHROOT
 
   # ZFS Configuration
@@ -436,4 +435,3 @@ cleanup
 if [[ ${REBOOT} =~ "true" ]]; then
   reboot
 fi
-
