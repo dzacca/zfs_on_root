@@ -50,6 +50,15 @@ export POOL_DISK="${DISKID}"
 export POOL_PART="3"
 export POOL_DEVICE="${POOL_DISK}-part${POOL_PART}"
 
+if [[ ${DEBUG} =~ "true" ]]; then
+  echo "BOOT_DEVICE: ${BOOT_DEVICE}"
+  echo "SWAP_DEVICE: ${SWAP_DEVICE}"
+  echo "POOL_DEVICE: ${POOL_DEVICE}"
+  echo "DISK: ${DISK}"
+  echo "DISKID: ${DISKID}"
+  read -pr "Hit enter to continue"
+fi
+
 # Swapsize autocalculated to be = Mem size
 SWAPSIZE=$(free --giga | grep Mem | awk '{OFS="";print "+", $2 ,"G"}')
 export SWAPSIZE
@@ -64,6 +73,16 @@ initialize() {
 
 # Disk preparation
 disk_prepare() {
+
+  if [[ ${DEBUG} =~ "true" ]]; then
+    echo "BOOT_DEVICE: ${BOOT_DEVICE}"
+    echo "SWAP_DEVICE: ${SWAP_DEVICE}"
+    echo "POOL_DEVICE: ${POOL_DEVICE}"
+    echo "DISK: ${DISK}"
+    echo "DISKID: ${DISKID}"
+    read -pr "Hit enter to continue"
+  fi
+
   wipefs -a "${DISKID}"
   blkdiscard -f "${DISKID}"
   sgdisk --zap-all "${DISKID}"
@@ -195,6 +214,16 @@ ZBM_install() {
   # Set ZFSBootMenu properties on datasets
   # Create a vfat filesystem
   # Create an fstab entry and mount
+
+  if [[ ${DEBUG} =~ "true" ]]; then
+    echo "BOOT_DEVICE: ${BOOT_DEVICE}"
+    echo "SWAP_DEVICE: ${SWAP_DEVICE}"
+    echo "POOL_DEVICE: ${POOL_DEVICE}"
+    echo "DISK: ${DISK}"
+    echo "DISKID: ${DISKID}"
+    read -pr "Hit enter to continue"
+  fi
+
   chroot "${MOUNTPOINT}" /bin/bash -x <<-EOCHROOT
   zfs set org.zfsbootmenu:commandline="quiet loglevel=4" zroot/ROOT
   zfs set org.zfsbootmenu:keysource="zroot/ROOT/${ID}" zroot
@@ -219,6 +248,16 @@ EOCHROOT
 
 # Create boot entry with efibootmgr
 EFI_install() {
+
+  if [[ ${DEBUG} =~ "true" ]]; then
+    echo "BOOT_DEVICE: ${BOOT_DEVICE}"
+    echo "SWAP_DEVICE: ${SWAP_DEVICE}"
+    echo "POOL_DEVICE: ${POOL_DEVICE}"
+    echo "DISK: ${DISK}"
+    echo "DISKID: ${DISKID}"
+    read -pr "Hit enter to continue"
+  fi
+
   chroot "${MOUNTPOINT}" /bin/bash -x <<-EOCHROOT
 ${APT} install -y efibootmgr
 efibootmgr -c -d "$DISK" -p "$BOOT_PART" \
@@ -296,6 +335,16 @@ EOF
 # Setup swap partition
 
 create_swap() {
+
+  if [[ ${DEBUG} =~ "true" ]]; then
+    echo "BOOT_DEVICE: ${BOOT_DEVICE}"
+    echo "SWAP_DEVICE: ${SWAP_DEVICE}"
+    echo "POOL_DEVICE: ${POOL_DEVICE}"
+    echo "DISK: ${DISK}"
+    echo "DISKID: ${DISKID}"
+    read -pr "Hit enter to continue"
+  fi
+
   echo swap "${DISKID}"-part2 /dev/urandom \
     swap,cipher=aes-xts-plain64:sha256,size=512 >>"${MOUNTPOINT}"/etc/crypttab
   echo /dev/mapper/swap none swap defaults 0 0 >>"${MOUNTPOINT}"/etc/fstab
