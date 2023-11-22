@@ -27,6 +27,9 @@ disk and setup the initial variables.
 ```bash
 gsettings set org.gnome.desktop.media-handling automount false
 sudo -i 
+```
+
+```bash
 cd
 apt update && sudo apt install -y git vim
 git clone https://github.com/dzacca/zfs_on_root.git
@@ -36,7 +39,7 @@ vi zfs_on_root_zbm.sh
 
 Edit the variables at the beginning of the file and make sure to change RUN to true, or the script will exit without doing anything.
 
-```
+```shell
 ########################
 # Change ${RUN} to true to execute the script
 RUN="false"
@@ -57,6 +60,5 @@ DEBUG="false"
 as root, execute the script `./zfs_on_root_zbm.sh`
 
 ### To Do
-- fix rEFInd theme installation. Will need to use the steps from the manual installation and not the quick install from the theme's install script.
-- Refactor the script to use functions and make it more readable
+
 - add options for more customisation
