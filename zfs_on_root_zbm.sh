@@ -11,21 +11,22 @@ export PASSPHRASE="SomeRandomKey"
 export PASSWORD="mypassword"
 export HOSTNAME="myhost"
 export USERNAME="myuser"
-export NALA="true" # Install and use nala instead of apt within the chrooted environment
+export NALA="true"     # Install and use nala instead of apt within the chrooted environment
+LOCALE="en_US.UTF-8"   #New install language setting.
+TIMEZONE="Europe/Rome" #New install timezone setting.
 
 ## Auto-reboot at the end of installation? (true/false)
-REBOOT="false" 
+REBOOT="false"
 DEBUG="false"
 ########################################################################
 ########################################################################
 ########################################################################
-if [[ ${RUN} =~ "false" ]];
-then
+if [[ ${RUN} =~ "false" ]]; then
+  echo "Refusing to run as \$RUN is set to false"
   exit 1
 fi
 
-if [[ ${NALA} =~ "true" ]];
-then
+if [[ ${NALA} =~ "true" ]]; then
   export APT="/usr/bin/nala"
 else
   export APT="/usr/bin/apt"
@@ -46,90 +47,99 @@ export POOL_PART="3"
 export POOL_DEVICE="${POOL_DISK}-part${POOL_PART}"
 
 # Swapsize autocalculated to be = Mem size
-export SWAPSIZE=`free --giga|grep Mem|awk '{OFS="";print "+", $2 ,"G"}'`
+SWAPSIZE=$(free --giga | grep Mem | awk '{OFS="";print "+", $2 ,"G"}')
+export SWAPSIZE
 
 # Start installation
+initialize() {
+  apt update
+  apt -y install debootstrap gdisk zfsutils-linux vim git curl
 
-apt update
-apt -y install debootstrap gdisk zfsutils-linux vim git curl
-
-zgenhostid -f 0x00bab10c
+  zgenhostid -f 0x00bab10c
+}
 
 # Disk preparation
-wipefs -a ${DISK}
-blkdiscard -f ${DISK}
-sgdisk --zap-all ${DISK}
-sync; sleep 2
+disk_prepare() {
+  wipefs -a ${DISK}
+  blkdiscard -f ${DISK}
+  sgdisk --zap-all ${DISK}
+  sync
+  sleep 2
 
-sgdisk -n "${BOOT_PART}:1m:+512m" -t "${BOOT_PART}:EF00" "${BOOT_DISK}"
-sgdisk -n "${SWAP_PART}:0:${SWAPSIZE}" -t "${SWAP_PART}:8200" "${SWAP_DISK}" 
-sgdisk -n "${POOL_PART}:0:-10m" -t "${POOL_PART}:BF00" "${POOL_DISK}"
-sync; sleep 2
+  sgdisk -n "${BOOT_PART}:1m:+512m" -t "${BOOT_PART}:EF00" "${BOOT_DISK}"
+  sgdisk -n "${SWAP_PART}:0:${SWAPSIZE}" -t "${SWAP_PART}:8200" "${SWAP_DISK}"
+  sgdisk -n "${POOL_PART}:0:-10m" -t "${POOL_PART}:BF00" "${POOL_DISK}"
+  sync
+  sleep 2
+}
 
 # ZFS pool creation
-# Create the zpool
-echo "${PASSPHRASE}" > /etc/zfs/zroot.key
-chmod 000 /etc/zfs/zroot.key
+zfs_pool_create() {
+  # Create the zpool
+  echo "${PASSPHRASE}" >/etc/zfs/zroot.key
+  chmod 000 /etc/zfs/zroot.key
 
-zpool create -f -o ashift=12 \
- -O compression=lz4 \
- -O acltype=posixacl \
- -O xattr=sa \
- -O relatime=on \
- -O encryption=aes-256-gcm \
- -O keylocation=file:///etc/zfs/zroot.key \
- -O keyformat=passphrase \
- -o autotrim=on \
- -o compatibility=openzfs-2.1-linux \
- -m none zroot "$POOL_DEVICE"
+  zpool create -f -o ashift=12 \
+    -O compression=lz4 \
+    -O acltype=posixacl \
+    -O xattr=sa \
+    -O relatime=on \
+    -O encryption=aes-256-gcm \
+    -O keylocation=file:///etc/zfs/zroot.key \
+    -O keyformat=passphrase \
+    -o autotrim=on \
+    -o compatibility=openzfs-2.1-linux \
+    -m none zroot "$POOL_DEVICE"
 
-sync; sleep 2
+  sync
+  sleep 2
 
-# Create initial file systems
-zfs create -o mountpoint=none zroot/ROOT
-zfs create -o mountpoint=/ -o canmount=noauto zroot/ROOT/${ID}
-zfs create -o mountpoint=/home zroot/home
+  # Create initial file systems
+  zfs create -o mountpoint=none zroot/ROOT
+  zfs create -o mountpoint=/ -o canmount=noauto zroot/ROOT/"${ID}"
+  zfs create -o mountpoint=/home zroot/home
 
-zpool set bootfs=zroot/ROOT/${ID} zroot
+  zpool set bootfs=zroot/ROOT/"${ID}" zroot
 
-# Export, then re-import with a temporary mountpoint of /mnt
-zpool export zroot
-zpool import -N -R /mnt zroot
-zfs load-key -L prompt zroot
+  # Export, then re-import with a temporary mountpoint of /mnt
+  zpool export zroot
+  zpool import -N -R /mnt zroot
+  zfs load-key -L prompt zroot
 
-zfs mount zroot/ROOT/${ID}
-zfs mount zroot/home
+  zfs mount zroot/ROOT/"${ID}"
+  zfs mount zroot/home
 
-
-# Update device symlinks
-udevadm trigger
+  # Update device symlinks
+  udevadm trigger
+}
 
 # Install Ubuntu
-debootstrap ${RELEASE} /mnt
+ubuntu_install() {
+  debootstrap ${RELEASE} /mnt
 
-# Copy files into the new install
-cp /etc/hostid /mnt/etc/hostid
-cp /etc/resolv.conf /mnt/etc/
-mkdir /mnt/etc/zfs
-cp /etc/zfs/zroot.key /mnt/etc/zfs
+  # Copy files into the new install
+  cp /etc/hostid /mnt/etc/hostid
+  cp /etc/resolv.conf /mnt/etc/
+  mkdir /mnt/etc/zfs
+  cp /etc/zfs/zroot.key /mnt/etc/zfs
 
-# Chroot into the new OS
-mount -t proc proc /mnt/proc
-mount -t sysfs sys /mnt/sys
-mount -B /dev /mnt/dev
-mount -t devpts pts /mnt/dev/pts
+  # Chroot into the new OS
+  mount -t proc proc /mnt/proc
+  mount -t sysfs sys /mnt/sys
+  mount -B /dev /mnt/dev
+  mount -t devpts pts /mnt/dev/pts
 
-# Set a hostname
-echo "$hostname" > /mnt/etc/hostname
-echo "127.0.1.1       $hostname" >> /mnt/etc/hosts
+  # Set a hostname
+  echo "$HOSTNAME" >/mnt/etc/hostname
+  echo "127.0.1.1       $HOSTNAME" >>/mnt/etc/hosts
 
-# Set root passwd
-chroot /mnt /bin/bash -x <<-EOCHROOT
+  # Set root passwd
+  chroot /mnt /bin/bash -x <<-EOCHROOT
   echo -e "root:$PASSWORD" | chpasswd -c SHA256
 EOCHROOT
 
-# Set up APT sources
-cat <<EOF > /mnt/etc/apt/sources.list
+  # Set up APT sources
+  cat <<EOF >/mnt/etc/apt/sources.list
 # Uncomment the deb-src entries if you need source packages
 
 deb http://archive.ubuntu.com/ubuntu/ ${RELEASE} main restricted universe multiverse
@@ -145,27 +155,27 @@ deb http://archive.ubuntu.com/ubuntu/ ${RELEASE}-backports main restricted unive
 # deb-src http://archive.ubuntu.com/ubuntu/ ${RELEASE}-backports main restricted universe multiverse
 EOF
 
-# Update the repository cache and system, install base packages, set up
-# console properties
-chroot /mnt /bin/bash -x <<-EOCHROOT
+  # Update the repository cache and system, install base packages, set up
+  # console properties
+  chroot /mnt /bin/bash -x <<-EOCHROOT
   apt update
   apt upgrade -y
   apt install -y --no-install-recommends linux-generic locales keyboard-configuration console-setup curl nala
   #dpkg-reconfigure locales tzdata keyboard-configuration console-setup
 EOCHROOT
 
-chroot "$mountpoint" /bin/bash -x <<-EOCHROOT
+  chroot "$MOUNTPOINT" /bin/bash -x <<-EOCHROOT
 		##4.5 configure basic system
-		locale-gen en_US.UTF-8 $locale
-		echo 'LANG="$locale"' > /etc/default/locale
+		locale-gen en_US.UTF-8 $LOCALE
+		echo 'LANG="$LOCALE"' > /etc/default/locale
 
 		##set timezone
-		ln -fs /usr/share/zoneinfo/"$timezone" /etc/localtime
+		ln -fs /usr/share/zoneinfo/"$TIMEZONE" /etc/localtime
 		dpkg-reconfigure tzdata
 EOCHROOT
 
-# ZFS Configuration
-chroot /mnt /bin/bash -x <<-EOCHROOT
+  # ZFS Configuration
+  chroot /mnt /bin/bash -x <<-EOCHROOT
   ${APT} install -y dosfstools zfs-initramfs zfsutils-linux curl vim wget
   systemctl enable zfs.target
   systemctl enable zfs-import-cache
@@ -174,48 +184,59 @@ chroot /mnt /bin/bash -x <<-EOCHROOT
   echo "UMASK=0077" > /etc/initramfs-tools/conf.d/umask.conf
   update-initramfs -c -k all
 EOCHROOT
+}
 
-# Install and configure ZFSBootMenu
-# Set ZFSBootMenu properties on datasets
-# Create a vfat filesystem
-# Create an fstab entry and mount
-chroot /mnt /bin/bash -x <<-EOCHROOT
+ZBM_install() {
+  # Install and configure ZFSBootMenu
+  # Set ZFSBootMenu properties on datasets
+  # Create a vfat filesystem
+  # Create an fstab entry and mount
+  chroot /mnt /bin/bash -x <<-EOCHROOT
   zfs set org.zfsbootmenu:commandline="quiet loglevel=4" zroot/ROOT
   zfs set org.zfsbootmenu:keysource="zroot/ROOT/${ID}" zroot
   mkfs.vfat -F32 "$BOOT_DEVICE"
 EOCHROOT
 
-cat << EOF >> /etc/fstab
-$( blkid | grep "$BOOT_DEVICE" | cut -d ' ' -f 2 ) /boot/efi vfat defaults 0 0
+  cat <<EOF >>/etc/fstab
+$(blkid | grep "$BOOT_DEVICE" | cut -d ' ' -f 2) /boot/efi vfat defaults 0 0
 EOF
 
-mkdir -p /mnt/boot/efi
+  mkdir -p /mnt/boot/efi
 
-# Install ZBM and configure EFI boot entries
-chroot /mnt /bin/bash -x <<-EOCHROOT
+  # Install ZBM and configure EFI boot entries
+  chroot /mnt /bin/bash -x <<-EOCHROOT
   mount /boot/efi
   mkdir -p /boot/efi/EFI/ZBM
   curl -o /boot/efi/EFI/ZBM/VMLINUZ.EFI -L https://get.zfsbootmenu.org/efi
   cp /boot/efi/EFI/ZBM/VMLINUZ.EFI /boot/efi/EFI/ZBM/VMLINUZ-BACKUP.EFI
   mount -t efivarfs efivarfs /sys/firmware/efi/efivars
-  ${APT} install -y efibootmgr
-  efibootmgr -c -d "$BOOT_DISK" -p "$BOOT_PART" \
-    -L "ZFSBootMenu (Backup)" \
-    -l '\EFI\ZBM\VMLINUZ-BACKUP.EFI'
+EOCHROOT
+}
 
-  efibootmgr -c -d "$BOOT_DISK" -p "$BOOT_PART" \
-    -L "ZFSBootMenu" \
-    -l '\EFI\ZBM\VMLINUZ.EFI'
+# Create boot entry with efibootmgr
+EFI_install() {
+  chroot /mnt /bin/bash -x <<-EOCHROOT
+${APT} install -y efibootmgr
+efibootmgr -c -d "$BOOT_DISK" -p "$BOOT_PART" \
+  -L "ZFSBootMenu (Backup)" \
+  -l '\EFI\ZBM\VMLINUZ-BACKUP.EFI'
 
-  sync; sleep 1  
+efibootmgr -c -d "$BOOT_DISK" -p "$BOOT_PART" \
+  -L "ZFSBootMenu" \
+  -l '\EFI\ZBM\VMLINUZ.EFI'
+
+sync
+sleep 1
 EOCHROOT
 
-if [[ ${DEBUG} =~ "true" ]];
-then
-  read -p "Finished w/ efibootmgr... waiting."
-fi
+  if [[ ${DEBUG} =~ "true" ]]; then
+    read -rp "Finished w/ efibootmgr... waiting."
+  fi
+}
 
-chroot /mnt /bin/bash -x <<-EOCHROOT
+# Install rEFInd
+rEFInd_install() {
+  chroot /mnt /bin/bash -x <<-EOCHROOT
   ${APT} install -y refind curl
   refind-install
   if [[ -a /boot/refind_linux.conf ]]; 
@@ -226,8 +247,7 @@ chroot /mnt /bin/bash -x <<-EOCHROOT
   #bash -c "$(curl -fsSL https://raw.githubusercontent.com/bobafetthotmail/refind-theme-regular/master/install.sh)"
 EOCHROOT
 
-# Install rEFInd regular theme (Dark)
-install_refind(){
+  # Install rEFInd regular theme (Dark)
   cd /root
   apt install -y git
   git clone https://github.com/bobafetthotmail/refind-theme-regular.git
@@ -235,9 +255,11 @@ install_refind(){
   rm refind-theme-regular/install.sh
   rm -rf /mnt/boot/efi/EFI/refind/{regular-theme,refind-theme-regular}
   rm -rf /mnt/boot/efi/EFI/refind/themes/{regular-theme,refind-theme-regular}
-  mkdir -p /mnt/boot/efi/EFI/refind/themes; sync
+  mkdir -p /mnt/boot/efi/EFI/refind/themes
+  sync
   sleep 2
-  cp -r refind-theme-regular /mnt/boot/efi/EFI/refind/themes/; sync
+  cp -r refind-theme-regular /mnt/boot/efi/EFI/refind/themes/
+  sync
   sleep 2
   cat refind-theme-regular/theme.conf | sed -e '/128/ s/^/#/' \
     -e '/48/ s/^/#/' \
@@ -246,7 +268,7 @@ install_refind(){
     -e '/256-96.*dark/ s/^#//' \
     -e '/icons_dir.*256/ s/^#//' >/mnt/boot/efi/EFI/refind/themes/refind-theme-regular/theme.conf
 
-  cat << EOF >> /mnt/boot/efi/EFI/refind/refind.conf
+  cat <<EOF >>/mnt/boot/efi/EFI/refind/refind.conf
 menuentry "Ubuntu (ZBM)" {
     loader /EFI/ZBM/VMLINUZ.EFI
     icon /EFI/refind/themes/refind-theme-regular/icons/256-96/os_ubuntu.png
@@ -262,19 +284,22 @@ menuentry "Ubuntu (ZBM Menu)" {
 include themes/refind-theme-regular/theme.conf
 EOF
 
-  if [[ ${DEBUG} =~ "true" ]];
-  then
-    read -p "Finished w/ rEFInd... waiting."
+  if [[ ${DEBUG} =~ "true" ]]; then
+    read -pr "Finished w/ rEFInd... waiting."
   fi
 }
-install_refind
 
 # Setup swap partition
-echo swap ${DISK}-part2 /dev/urandom \
-      swap,cipher=aes-xts-plain64:sha256,size=512 >> /mnt/etc/crypttab
-echo /dev/mapper/swap none swap defaults 0 0 >> /mnt/etc/fstab
 
-chroot /mnt /bin/bash -x <<-EOCHROOT
+create_swap() {
+  echo swap ${DISK}-part2 /dev/urandom \
+    swap,cipher=aes-xts-plain64:sha256,size=512 >>/mnt/etc/crypttab
+  echo /dev/mapper/swap none swap defaults 0 0 >>/mnt/etc/fstab
+}
+
+# Create system groups and network setup
+groups_and_networks() {
+  chroot /mnt /bin/bash -x <<-EOCHROOT
   cp /usr/share/systemd/tmp.mount /etc/systemd/system/
   systemctl enable tmp.mount
   addgroup --system lpadmin
@@ -285,9 +310,11 @@ chroot /mnt /bin/bash -x <<-EOCHROOT
   echo "  version: 2" >>/etc/netplan/01-network-manager-all.yaml
   echo "  renderer: NetworkManager" >>/etc/netplan/01-network-manager-all.yaml
 EOCHROOT
+}
 
 # Create user
-chroot /mnt /bin/bash -x <<-EOCHROOT
+create_user() {
+  chroot /mnt /bin/bash -x <<-EOCHROOT
   adduser --disabled-password --gecos "" ${USERNAME}
   cp -a /etc/skel/. /home/${USERNAME}
   chown -R ${USERNAME}:${USERNAME} /home/${USERNAME}
@@ -297,20 +324,25 @@ chroot /mnt /bin/bash -x <<-EOCHROOT
   chmod 400 /etc/sudoers.d/${USERNAME}
   echo -e "${USERNAME}:$PASSWORD" | chpasswd
 EOCHROOT
+}
 
 # Install desktop bundle
-chroot /mnt /bin/bash -x <<-EOCHROOT
+install_ubuntu_desktop() {
+  chroot /mnt /bin/bash -x <<-EOCHROOT
   ${APT} dist-upgrade -y
   ${APT} install -y ubuntu-desktop
 EOCHROOT
+}
 
 # Disable log gzipping as we already use compresion at filesystem level
-chroot /mnt /bin/bash -x <<-EOCHROOT
+uncompress_logs() {
+  chroot /mnt /bin/bash -x <<-EOCHROOT
   for file in /etc/logrotate.d/* ; do
-    if grep -Eq "(^|[^#y])compress" "$file" ; then
-        sed -i -r "s/(^|[^#y])(compress)/\1#\2/" "$file"
+    if grep -Eq "(^|[^#y])compress" "${file}" ; then
+        sed -i -r "s/(^|[^#y])(compress)/\1#\2/" "${file}"
     fi
 EOCHROOT
+}
 
 # re-lock root account
 disable_root_login() {
@@ -319,15 +351,33 @@ disable_root_login() {
 EOCHROOT
 }
 
+#Umount target and final cleanup
+cleanup() {
+  umount -n -R /mnt
+  sync
+  sleep 5
+  umount -n -R /mnt
+
+  zpool export zroot
+}
+
+################################################################
+# MAIN Program
+initialize
+disk_prepare
+zfs_pool_create
+ubuntu_install
+create_swap
+ZBM_install
+EFI_install
+rEFInd_install
+groups_and_networks
+create_user
+install_ubuntu_desktop
+uncompress_logs
 disable_root_login
+cleanup
 
-umount -n -R /mnt
-sync; sleep 5
-umount -n -R /mnt
-
-zpool export zroot
-
-if [[ ${REBOOT} =~ "true" ]];
-then
+if [[ ${REBOOT} =~ "true" ]]; then
   reboot
 fi
