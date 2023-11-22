@@ -56,7 +56,7 @@ if [[ ${DEBUG} =~ "true" ]]; then
   echo "POOL_DEVICE: ${POOL_DEVICE}"
   echo "DISK: ${DISK}"
   echo "DISKID: ${DISKID}"
-  read -pr "Hit enter to continue"
+  read -rp "Hit enter to continue"
 fi
 
 # Swapsize autocalculated to be = Mem size
@@ -80,7 +80,7 @@ disk_prepare() {
     echo "POOL_DEVICE: ${POOL_DEVICE}"
     echo "DISK: ${DISK}"
     echo "DISKID: ${DISKID}"
-    read -pr "Hit enter to continue"
+    read -rp "Hit enter to continue"
   fi
 
   wipefs -a "${DISKID}"
@@ -214,6 +214,11 @@ ZBM_install() {
   # Set ZFSBootMenu properties on datasets
   # Create a vfat filesystem
   # Create an fstab entry and mount
+  cat <<EOF >>${MOUNTPOINT}/etc/fstab
+$(blkid | grep "${DISK}2" | cut -d ' ' -f 2) /boot/efi vfat defaults 0 0
+EOF
+
+  mkdir -p "${MOUNTPOINT}"/boot/efi
 
   if [[ ${DEBUG} =~ "true" ]]; then
     echo "BOOT_DEVICE: ${BOOT_DEVICE}"
@@ -221,7 +226,7 @@ ZBM_install() {
     echo "POOL_DEVICE: ${POOL_DEVICE}"
     echo "DISK: ${DISK}"
     echo "DISKID: ${DISKID}"
-    read -pr "Hit enter to continue"
+    read -rp "Hit enter to continue"
   fi
 
   chroot "${MOUNTPOINT}" /bin/bash -x <<-EOCHROOT
@@ -229,12 +234,6 @@ ZBM_install() {
   zfs set org.zfsbootmenu:keysource="zroot/ROOT/${ID}" zroot
   mkfs.vfat -F32 "$BOOT_DEVICE"
 EOCHROOT
-
-  cat <<EOF >>${MOUNTPOINT}/etc/fstab
-$(blkid | grep "${DISK}2" | cut -d ' ' -f 2) /boot/efi vfat defaults 0 0
-EOF
-
-  mkdir -p "${MOUNTPOINT}"/boot/efi
 
   # Install ZBM and configure EFI boot entries
   chroot "${MOUNTPOINT}" /bin/bash -x <<-EOCHROOT
@@ -255,7 +254,7 @@ EFI_install() {
     echo "POOL_DEVICE: ${POOL_DEVICE}"
     echo "DISK: ${DISK}"
     echo "DISKID: ${DISKID}"
-    read -pr "Hit enter to continue"
+    read -rp "Hit enter to continue"
   fi
 
   chroot "${MOUNTPOINT}" /bin/bash -x <<-EOCHROOT
@@ -328,7 +327,7 @@ include themes/refind-theme-regular/theme.conf
 EOF
 
   if [[ ${DEBUG} =~ "true" ]]; then
-    read -pr "Finished w/ rEFInd... waiting."
+    read -rp "Finished w/ rEFInd... waiting."
   fi
 }
 
@@ -342,7 +341,7 @@ create_swap() {
     echo "POOL_DEVICE: ${POOL_DEVICE}"
     echo "DISK: ${DISK}"
     echo "DISKID: ${DISKID}"
-    read -pr "Hit enter to continue"
+    read -rp "Hit enter to continue"
   fi
 
   echo swap "${DISKID}"-part2 /dev/urandom \
