@@ -202,7 +202,7 @@ ZBM_install() {
 EOCHROOT
 
   cat <<EOF >>${MOUNTPOINT}/etc/fstab
-$(blkid | grep "$BOOT_DEVICE" | cut -d ' ' -f 2) /boot/efi vfat defaults 0 0
+$(blkid | grep "${DISK}2" | cut -d ' ' -f 2) /boot/efi vfat defaults 0 0
 EOF
 
   mkdir -p "${MOUNTPOINT}"/boot/efi
