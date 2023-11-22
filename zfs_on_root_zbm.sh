@@ -27,7 +27,7 @@ if [[ ${RUN} =~ "false" ]]; then
   exit 1
 fi
 
-DISKID=$(ls -al /dev/disk/by-id | grep ${DISK} | awk '{print $9}' | head -1)
+DISKID=/dev/disk/by-id/$(ls -al /dev/disk/by-id | grep ${DISK} | awk '{print $9}' | head -1)
 export DISKID
 if [[ ${NALA} =~ "true" ]]; then
   export APT="/usr/bin/nala"
@@ -63,9 +63,9 @@ initialize() {
 
 # Disk preparation
 disk_prepare() {
-  wipefs -a ${DISKID}
-  blkdiscard -f ${DISKID}
-  sgdisk --zap-all ${DISKID}
+  wipefs -a "${DISKID}"
+  blkdiscard -f "${DISKID}"
+  sgdisk --zap-all "${DISKID}"
   sync
   sleep 2
 
@@ -220,11 +220,11 @@ EOCHROOT
 EFI_install() {
   chroot "${MOUNTPOINT}" /bin/bash -x <<-EOCHROOT
 ${APT} install -y efibootmgr
-efibootmgr -c -d "$DISK" -p "$BOOT_PART" \
+efibootmgr -c -d /dev/"$DISK" -p "$BOOT_PART" \
   -L "ZFSBootMenu (Backup)" \
   -l '\EFI\ZBM\VMLINUZ-BACKUP.EFI'
 
-efibootmgr -c -d "$DISK" -p "$BOOT_PART" \
+efibootmgr -c -d /dev/"$DISK" -p "$BOOT_PART" \
   -L "ZFSBootMenu" \
   -l '\EFI\ZBM\VMLINUZ.EFI'
 
