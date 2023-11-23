@@ -6,10 +6,10 @@ This is a very basic script that I created to make it quicker for me
 to set up VMs or play around with ZFS-based installation of Ubuntu.
 The script is based on the documentation from
 [OpenZFS](https://openzfs.github.io/openzfs-docs/Getting%20Started/Ubuntu/Ubuntu%2022.04%20Root%20on%20ZFS.html#step-5-grub-installation), [ZFSBootMenu](https://docs.zfsbootmenu.org/en/v2.2.x/index.html), and with some ideas taken from  [ubuntu-server-zfsbootmenu](https://github.hscsec.cn/Sithuk/ubuntu-server-zfsbootmenu).
-The script currently install Ubuntu on a single disk, with zpool encrypted with native ZFS encryption, and no ZSys installation (I don't use ZSys and it will be deprecated in any case). The layout of the partition is a modified version of what used by ZFSBootMenu as I do create the following:
+The script currently install Ubuntu on a single disk, with zpool encrypted with native ZFS encryption, and no ZSys installation (I don't use ZSys and it will be deprecated in any case). The layout of the partition is a modified version of what used by ZFSBootMenu as I create the following:
 
 - Partition 1: EFI
-- Partition 2: Swap (size is automatically calcualated by the script based on the amount of memory you have
+- Partition 2: Swap (size is automatically calculated by the script based on the amount of memory you have
 - Partition 3: zroot
 
 The script is still work in progress and is not yet meant for production use.
