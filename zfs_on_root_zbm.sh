@@ -6,15 +6,16 @@ RUN="false"
 
 # Variables - Populate/tweak this before launching the script
 export RELEASE="mantic"
-export DISK="sda" # Enter the disk name only (sda, sdb, nvme1, etc)
-export PASSPHRASE="SomeRandomKey"
-export PASSWORD="mypassword"
-export HOSTNAME="myhost"
-export USERNAME="myuser"
-export NALA="true"            # Install and use nala instead of apt within the chrooted environment
-export MOUNTPOINT="/mnt"      # debootstrap target location
-export LOCALE="en_US.UTF-8"   #New install language setting.
-export TIMEZONE="Europe/Rome" #New install timezone setting.
+export DISK="sda"                 # Enter the disk name only (sda, sdb, nvme1, etc)
+export PASSPHRASE="SomeRandomKey" # Encryption passphrase for zroot
+export PASSWORD="mypassword"      # temporary root password & password for ${USERNAME}
+export HOSTNAME="myhost"          # hostname of the new machine
+export USERNAME="myuser"          # user to create in the new machine
+export NALA="true"                # Install and use nala instead of apt within the chrooted environment
+export MOUNTPOINT="/mnt"          # debootstrap target location
+export LOCALE="en_US.UTF-8"       # New install language setting.
+export TIMEZONE="Europe/Rome"     # New install timezone setting.
+export RTL8821CE="false"          # Download and install RTL8821CE drivers as the default ones are faulty
 
 ## Auto-reboot at the end of installation? (true/false)
 REBOOT="false"
@@ -415,6 +416,20 @@ cleanup() {
   zpool export zroot
 }
 
+# Download and install RTL8821CE drivers
+rtl8821ce_install() {
+  chroot "${MOUNTPOINT}" /bin/bash -x <<-EOCHROOT
+  cd /root
+  get clone https://github.com/tomaspinho/rtl8821ce.git 
+  cd rtc8821ce
+  nala install install bc module-assistant build-essential dkms
+  m-a prepare
+  ./dkms-install.sh
+  zfs set org.zfsbootmenu:commandline="quiet loglevel=4 splash pcie_aspm=off" zroot/ROOT
+  echo "blacklist rtw88_8821ce" >> /etc/modprobe.d/blacklist.conf
+EOCHROOT
+}
+
 ################################################################
 # MAIN Program
 initialize
@@ -429,6 +444,9 @@ groups_and_networks
 create_user
 install_ubuntu_desktop
 uncompress_logs
+if [[ ${RTL8821CE} =~ "true" ]]; then
+  rtl8821ce_install
+fi
 disable_root_login
 cleanup
 
