@@ -59,6 +59,9 @@ DEBUG="false"
 
 as root, execute the script `./zfs_on_root_zbm.sh`
 
+I adedd an option to download and install rl8821ce drivers as the 
+ones shipped with ubuntu always gives me headhaches.
+
 ### To Do
 
 - add options for more customisation
