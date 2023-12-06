@@ -419,6 +419,7 @@ cleanup() {
 # Download and install RTL8821CE drivers
 rtl8821ce_install() {
   chroot "${MOUNTPOINT}" /bin/bash -x <<-EOCHROOT
+  nala install -y git
   cd /root
   git clone https://github.com/tomaspinho/rtl8821ce.git 
   cd rtc8821ce
