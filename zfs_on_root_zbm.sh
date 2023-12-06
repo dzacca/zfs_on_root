@@ -422,7 +422,7 @@ rtl8821ce_install() {
   nala install -y git
   cd /root
   git clone https://github.com/tomaspinho/rtl8821ce.git 
-  cd rtc8821ce
+  cd rtl8821ce
   nala install bc module-assistant build-essential dkms
   m-a prepare
   ./dkms-install.sh
