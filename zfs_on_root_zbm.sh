@@ -420,7 +420,7 @@ cleanup() {
 rtl8821ce_install() {
   chroot "${MOUNTPOINT}" /bin/bash -x <<-EOCHROOT
   cd /root
-  get clone https://github.com/tomaspinho/rtl8821ce.git 
+  git clone https://github.com/tomaspinho/rtl8821ce.git 
   cd rtc8821ce
   nala install install bc module-assistant build-essential dkms
   m-a prepare
