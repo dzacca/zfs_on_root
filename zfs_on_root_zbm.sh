@@ -423,7 +423,7 @@ rtl8821ce_install() {
   cd /root
   git clone https://github.com/tomaspinho/rtl8821ce.git 
   cd rtl8821ce
-  nala install bc module-assistant build-essential dkms
+  nala install -y bc module-assistant build-essential dkms
   m-a prepare
   ./dkms-install.sh
   zfs set org.zfsbootmenu:commandline="quiet loglevel=4 splash pcie_aspm=off" zroot/ROOT
