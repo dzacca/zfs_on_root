@@ -143,7 +143,12 @@ zfs_pool_create() {
   # Export, then re-import with a temporary mountpoint of "${MOUNTPOINT}"
   zpool export zroot
   zpool import -N -R "${MOUNTPOINT}" zroot
-  zfs load-key -L prompt zroot
+  ## Remove the need for manual prompt of the passphrase
+  echo "${PASSPHRASE}" >/tmp/zpass
+  sync
+  chmod 0400 /tmp/zpass
+  zfs load-key -L file:///tmp/zpass zroot
+  rm /tmp/zpass
 
   zfs mount zroot/ROOT/"${ID}"
   zfs mount zroot/home
