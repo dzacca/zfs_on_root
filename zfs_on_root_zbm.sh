@@ -198,7 +198,7 @@ EOF
   chroot "${MOUNTPOINT}" /bin/bash -x <<-EOCHROOT
   ${APT} update
   ${APT} upgrade -y
-  ${APT} install -y --no-install-recommends linux-generic locales keyboard-configuration console-setup curl nala
+  ${APT} install -y --no-install-recommends linux-generic locales keyboard-configuration console-setup curl nala git
 EOCHROOT
 
   chroot "$MOUNTPOINT" /bin/bash -x <<-EOCHROOT
@@ -208,7 +208,7 @@ EOCHROOT
 
 		##set timezone
 		ln -fs /usr/share/zoneinfo/"$TIMEZONE" /etc/localtime
-		:dpkg-reconfigure locales tzdata keyboard-configuration console-setup
+		dpkg-reconfigure locales tzdata keyboard-configuration console-setup
 EOCHROOT
 
   # ZFS Configuration
