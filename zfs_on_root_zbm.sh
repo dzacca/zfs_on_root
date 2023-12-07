@@ -286,7 +286,8 @@ EOCHROOT
 rEFInd_install() {
   echo "------------> Install rEFInd <-------------"
   chroot "${MOUNTPOINT}" /bin/bash -x <<-EOCHROOT
-  yes | ${APT} install -y refind curl
+  ${APT} install -y curl
+  DEBIAN_FRONTEND=noninteractive ${APT} install -y refind
   refind-install
   if [[ -a /boot/refind_linux.conf ]];
   then
@@ -421,7 +422,7 @@ cleanup() {
   umount -n -R "${MOUNTPOINT}"
   sync
   sleep 5
-  umount -n -R "${MOUNTPOINT}"
+  umount -n -R "${MOUNTPOINT}" >/dev/null 2>&1
 
   zpool export zroot
 }
