@@ -145,6 +145,37 @@ zfs_pool_create() {
 
   zpool set bootfs=zroot/ROOT/"${ID}" zroot
 
+  ##Create datasets
+  ##Aim is to separate OS from user data.
+  ##Allows root filesystem to be rolled back without rolling back user data such as logs.
+  ##https://didrocks.fr/2020/06/16/zfs-focus-on-ubuntu-20.04-lts-zsys-dataset-layout/
+  ##https://openzfs.github.io/openzfs-docs/Getting%20Started/Debian/Debian%20Buster%20Root%20on%20ZFS.html#step-3-system-installation
+  ##"-o canmount=off" is for a system directory that should rollback with the rest of the system.
+
+  zfs create zroot/srv ##server webserver content
+  zfs create -o canmount=off zroot/usr
+  zfs create zroot/usr/local ##locally compiled software
+  zfs create -o canmount=off zroot/var
+  zfs create -o canmount=off zroot/var/lib
+  zfs create zroot/var/games ##game files
+  zfs create zroot/var/log   ##log files
+  zfs create zroot/var/mail  ##local mails
+  zfs create zroot/var/snap  ##snaps handle revisions themselves
+  zfs create zroot/var/spool ##printing tasks
+  zfs create zroot/var/www   ##server webserver content
+
+  ##USERDATA datasets
+  zfs create zroot/home
+  zfs create -o mountpoint=/root zroot/home/root
+  chmod 700 "${MOUNTPOINT}"/root
+
+  ##optional
+  ##exclude from snapshots
+  zfs create -o com.sun:auto-snapshot=false zroot/var/cache
+  zfs create -o com.sun:auto-snapshot=false zroot/var/tmp
+  chmod 1777 "${MOUNTPOINT}"/var/tmp
+  zfs create -o com.sun:auto-snapshot=false zroot/var/lib/docker ##Docker manages its own datasets & snapshots
+
   # Export, then re-import with a temporary mountpoint of "${MOUNTPOINT}"
   zpool export zroot
   zpool import -N -R "${MOUNTPOINT}" zroot
