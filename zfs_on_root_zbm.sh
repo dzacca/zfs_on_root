@@ -5,6 +5,7 @@
 RUN="false"
 
 # Variables - Populate/tweak this before launching the script
+export DISTRO="server" #server, desktop, kumuntu, xubuntu, budgie, MATE
 export RELEASE="mantic"
 export DISK="sda"                 # Enter the disk name only (sda, sdb, nvme1, etc)
 export PASSPHRASE="SomeRandomKey" # Encryption passphrase for zroot
@@ -402,7 +403,48 @@ install_ubuntu_desktop() {
   echo "------------> Installing desktop bundle <------------"
   chroot "${MOUNTPOINT}" /bin/bash -x <<-EOCHROOT
   ${APT} dist-upgrade -y
-  ${APT} install -y ubuntu-desktop
+
+    if [[ "$DISTRO" != "server" ]];
+		then
+			zfs create 	"zroot/ROOT/"${ID}"/var/lib/AccountsService
+		fi
+
+		case "$DISTRO" in
+			server)	distro_variant
+				##Server installation has a command line interface only.
+				##Minimal install: ubuntu-server-minimal
+				${APT} install --yes ubuntu-server
+			;;
+			desktop)
+				##Ubuntu default desktop install has a full GUI environment.
+				##Minimal install: ubuntu-desktop-minimal
+				${APT} install --yes ubuntu-desktop
+			;;
+			kubuntu)
+				##Ubuntu KDE plasma desktop install has a full GUI environment.
+				##Select sddm as display manager.
+				echo sddm shared/default-x-display-manager select sddm | debconf-set-selections
+				${APT} install --yes kubuntu-desktop
+			;;
+			xubuntu)
+				##Ubuntu xfce desktop install has a full GUI environment.
+				##Select lightdm as display manager.
+				echo lightdm shared/default-x-display-manager select lightdm | debconf-set-selections
+				${APT} install --yes xubuntu-desktop
+			;;
+			budgie)
+				##Ubuntu budgie desktop install has a full GUI environment.
+				##Select lightdm as display manager.
+				echo lightdm shared/default-x-display-manager select lightdm | debconf-set-selections
+				${APT} install --yes ubuntu-budgie-desktop
+			;;
+			MATE)
+				##Ubuntu MATE desktop install has a full GUI environment.
+				##Select lightdm as display manager.
+				echo lightdm shared/default-x-display-manager select lightdm | debconf-set-selections
+				${APT} install --yes ubuntu-mate-desktop
+			;;
+      esac
 EOCHROOT
 }
 
