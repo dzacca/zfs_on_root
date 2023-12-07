@@ -77,7 +77,7 @@ initialize() {
 
 # Disk preparation
 disk_prepare() {
-
+  echo "------------> Preparing ${DISK} <------------"
   if [[ ${DEBUG} =~ "true" ]]; then
     echo "BOOT_DEVICE: ${BOOT_DEVICE}"
     echo "SWAP_DEVICE: ${SWAP_DEVICE}"
@@ -103,6 +103,7 @@ disk_prepare() {
 # ZFS pool creation
 zfs_pool_create() {
   # Create the zpool
+  echo "------------> Create zpool <------------"
   echo "${PASSPHRASE}" >/etc/zfs/zroot.key
   chmod 000 /etc/zfs/zroot.key
 
@@ -142,6 +143,7 @@ zfs_pool_create() {
 
 # Install Ubuntu
 ubuntu_install() {
+  echo "------------> Debootstrap Ubuntu ${RELEASE} <------------"
   debootstrap ${RELEASE} "${MOUNTPOINT}"
 
   # Copy files into the new install
@@ -217,6 +219,7 @@ ZBM_install() {
   # Set ZFSBootMenu properties on datasets
   # Create a vfat filesystem
   # Create an fstab entry and mount
+  echo "------------> Installing ZFSBootMenu <------------"
   cat <<EOF >>${MOUNTPOINT}/etc/fstab
 $(blkid | grep "${DISK}${BOOT_PART}" | cut -d ' ' -f 2) /boot/efi vfat defaults 0 0
 EOF
@@ -250,7 +253,7 @@ EOCHROOT
 
 # Create boot entry with efibootmgr
 EFI_install() {
-
+  echo "------------> Installing efibootmgr <------------"
   if [[ ${DEBUG} =~ "true" ]]; then
     echo "BOOT_DEVICE: ${BOOT_DEVICE}"
     echo "SWAP_DEVICE: ${SWAP_DEVICE}"
@@ -281,6 +284,7 @@ EOCHROOT
 
 # Install rEFInd
 rEFInd_install() {
+  echo "------------> Install rEFInd <-------------"
   chroot "${MOUNTPOINT}" /bin/bash -x <<-EOCHROOT
   ${APT} install -y refind curl
   refind-install
@@ -337,6 +341,7 @@ EOF
 # Setup swap partition
 
 create_swap() {
+  echo "------------> Create swap partition <------------"
 
   if [[ ${DEBUG} =~ "true" ]]; then
     echo "BOOT_DEVICE: ${BOOT_DEVICE}"
@@ -354,6 +359,7 @@ create_swap() {
 
 # Create system groups and network setup
 groups_and_networks() {
+  echo "------------> Setup groups and networks <----------------"
   chroot "${MOUNTPOINT}" /bin/bash -x <<-EOCHROOT
   cp /usr/share/systemd/tmp.mount /etc/systemd/system/
   systemctl enable tmp.mount
@@ -383,6 +389,7 @@ EOCHROOT
 
 # Install desktop bundle
 install_ubuntu_desktop() {
+  echo "------------> Installing desktop bundle <------------"
   chroot "${MOUNTPOINT}" /bin/bash -x <<-EOCHROOT
   ${APT} dist-upgrade -y
   ${APT} install -y ubuntu-desktop
@@ -391,6 +398,7 @@ EOCHROOT
 
 # Disable log gzipping as we already use compresion at filesystem level
 uncompress_logs() {
+  echo "------------> Uncompress logs <------------"
   chroot "${MOUNTPOINT}" /bin/bash -x <<-EOCHROOT
   for file in /etc/logrotate.d/* ; do
     if grep -Eq "(^|[^#y])compress" "${file}" ; then
@@ -401,6 +409,7 @@ EOCHROOT
 
 # re-lock root account
 disable_root_login() {
+  echo "------------> Disable root login <------------"
   chroot "${MOUNTPOINT}" /bin/bash -x <<-EOCHROOT
   usermod -p '*' root
 EOCHROOT
@@ -408,6 +417,7 @@ EOCHROOT
 
 #Umount target and final cleanup
 cleanup() {
+  echo "------------> Final cleanup <------------"
   umount -n -R "${MOUNTPOINT}"
   sync
   sleep 5
@@ -418,13 +428,13 @@ cleanup() {
 
 # Download and install RTL8821CE drivers
 rtl8821ce_install() {
+  echo "------------> Installing RTL8821CE drivers <------------"
   chroot "${MOUNTPOINT}" /bin/bash -x <<-EOCHROOT
-  nala install -y git
+  nala install -y git bc module-assistant build-essential dkms
+  m-a prepare
   cd /root
   git clone https://github.com/tomaspinho/rtl8821ce.git 
   cd rtl8821ce
-  nala install -y bc module-assistant build-essential dkms
-  m-a prepare
   ./dkms-install.sh
   zfs set org.zfsbootmenu:commandline="quiet loglevel=4 splash pcie_aspm=off" zroot/ROOT
   echo "blacklist rtw88_8821ce" >> /etc/modprobe.d/blacklist.conf
