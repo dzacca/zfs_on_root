@@ -69,13 +69,6 @@ fi
 SWAPSIZE=$(free --giga | grep Mem | awk '{OFS="";print "+", $2 ,"G"}')
 export SWAPSIZE
 
-# Test for git existence, if not, install it
-git_test() {
-  if [[ ! -x /usr/bin/git ]]; then
-    ${APT} install -y git
-  fi
-}
-
 # Start installation
 initialize() {
   apt update
@@ -315,7 +308,7 @@ EOCHROOT
 
   # Install rEFInd regular theme (Dark)
   cd /root
-  git_test
+  ${APT} install -y git
   ${GIT} clone https://github.com/bobafetthotmail/refind-theme-regular.git
   rm -rf refind-theme-regular/{src,.git}
   rm refind-theme-regular/install.sh
@@ -450,7 +443,7 @@ rtl8821ce_install() {
   ${APT} install -y bc module-assistant build-essential dkms
   m-a prepare
   cd /root
-  git_test
+  ${APT} install -y git
   ${GIT} clone https://github.com/tomaspinho/rtl8821ce.git 
   cd rtl8821ce
   ./dkms-install.sh
