@@ -403,17 +403,18 @@ EOCHROOT
 
 # Install desktop bundle
 install_ubuntu_desktop() {
-  echo "------------> Installing desktop bundle <------------"
+  echo "------------> Installing ${DISTRO} bundle <------------"
   chroot "${MOUNTPOINT}" /bin/bash -x <<-EOCHROOT
-  ${APT} dist-upgrade -y
+    ${APT} dist-upgrade -y
 
     if [[ "$DISTRO" != "server" ]];
 		then
 			zfs create 	"zroot/ROOT/"${ID}"/var/lib/AccountsService
-		fi
+		# TODO: create additional datasets
+    fi
 
 		case "$DISTRO" in
-			server)	distro_variant
+			server)	
 				##Server installation has a command line interface only.
 				##Minimal install: ubuntu-server-minimal
 				${APT} install --yes ubuntu-server
