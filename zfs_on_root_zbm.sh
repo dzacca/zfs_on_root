@@ -447,7 +447,7 @@ cleanup() {
 rtl8821ce_install() {
   echo "------------> Installing RTL8821CE drivers <------------"
   chroot "${MOUNTPOINT}" /bin/bash -x <<-EOCHROOT
-  nala install -y bc module-assistant build-essential dkms
+  ${APT} install -y bc module-assistant build-essential dkms
   m-a prepare
   cd /root
   git_test
