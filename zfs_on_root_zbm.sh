@@ -27,7 +27,6 @@ DEBUG="false"
 ########################################################################
 ########################################################################
 ########################################################################
-export GIT="/usr/bin/git"
 
 if [[ ${RUN} =~ "false" ]]; then
   echo "Refusing to run as \$RUN is set to false"
@@ -314,7 +313,7 @@ EOCHROOT
   # Install rEFInd regular theme (Dark)
   cd /root
   ${APT} install -y git
-  ${GIT} clone https://github.com/bobafetthotmail/refind-theme-regular.git
+  /usr/bin/git clone https://github.com/bobafetthotmail/refind-theme-regular.git
   rm -rf refind-theme-regular/{src,.git}
   rm refind-theme-regular/install.sh
   rm -rf "${MOUNTPOINT}"/boot/efi/EFI/refind/{regular-theme,refind-theme-regular}
@@ -490,7 +489,7 @@ rtl8821ce_install() {
   m-a prepare
   cd /root
   ${APT} install -y git
-  ${GIT} clone https://github.com/tomaspinho/rtl8821ce.git 
+  /usr/bin/git clone https://github.com/tomaspinho/rtl8821ce.git 
   cd rtl8821ce
   ./dkms-install.sh
   zfs set org.zfsbootmenu:commandline="quiet loglevel=4 splash pcie_aspm=off" zroot/ROOT
