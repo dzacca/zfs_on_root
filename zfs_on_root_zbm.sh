@@ -12,7 +12,7 @@ export PASSPHRASE="SomeRandomKey" # Encryption passphrase for zroot
 export PASSWORD="mypassword"      # temporary root password & password for ${USERNAME}
 export HOSTNAME="myhost"          # hostname of the new machine
 export USERNAME="myuser"          # user to create in the new machine
-export NALA="true"                # Install and use nala instead of apt
+export NALA="false"               # Install and use nala instead of apt (leave it to false as currently buggy)
 export MOUNTPOINT="/mnt"          # debootstrap target location
 export LOCALE="en_US.UTF-8"       # New install language setting.
 export TIMEZONE="Europe/Rome"     # New install timezone setting.
@@ -37,7 +37,9 @@ DISKID=/dev/disk/by-id/$(ls -al /dev/disk/by-id | grep ${DISK} | awk '{print $9}
 export DISKID
 DISK="/dev/${DISK}"
 if [[ ${NALA} =~ "true" ]]; then
-  export APT="/usr/bin/nala"
+  # TODO: Fix nala usage
+  # export APT="/usr/bin/nala"
+  export APT="/usr/bin/apt"
 else
   export APT="/usr/bin/apt"
 fi
@@ -96,6 +98,16 @@ disk_prepare() {
   sgdisk --zap-all "${DISKID}"
   sync
   sleep 2
+
+  ## gdisk hex codes:
+  ## EF02 BIOS boot partitions
+  ## EF00 EFI system
+  ## BE00 Solaris boot
+  ## BF00 Solaris root
+  ## BF01 Solaris /usr & Mac Z
+  ## 8200 Linux swap
+  ## 8300 Linux file system
+  ## FD00 Linux RAID
 
   sgdisk -n "${BOOT_PART}:1m:+512m" -t "${BOOT_PART}:EF00" "${BOOT_DISK}"
   sgdisk -n "${SWAP_PART}:0:${SWAPSIZE}" -t "${SWAP_PART}:8200" "${SWAP_DISK}"
@@ -323,7 +335,7 @@ EOCHROOT
   ${APT} install -y git
   /usr/bin/git clone https://github.com/bobafetthotmail/refind-theme-regular.git
   rm -rf refind-theme-regular/{src,.git}
-  rm refind-theme-regular/install.sh
+  rm refind-theme-regular/install.sh >/dev/null 2>&1
   rm -rf "${MOUNTPOINT}"/boot/efi/EFI/refind/{regular-theme,refind-theme-regular}
   rm -rf "${MOUNTPOINT}"/boot/efi/EFI/refind/themes/{regular-theme,refind-theme-regular}
   mkdir -p "${MOUNTPOINT}"/boot/efi/EFI/refind/themes
