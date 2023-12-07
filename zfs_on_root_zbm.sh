@@ -5,7 +5,7 @@
 RUN="false"
 
 # Variables - Populate/tweak this before launching the script
-export DISTRO="server" #server, desktop
+export DISTRO="desktop" #server, desktop
 export RELEASE="mantic"
 export DISK="sda"                 # Enter the disk name only (sda, sdb, nvme1, etc)
 export PASSPHRASE="SomeRandomKey" # Encryption passphrase for zroot
@@ -452,18 +452,18 @@ create_user() {
 EOCHROOT
 }
 
-# Install desktop bundle
-install_ubuntu_desktop() {
+# Install distro bundle
+install_ubuntu() {
   echo "------------> Installing ${DISTRO} bundle <------------"
   chroot "${MOUNTPOINT}" /bin/bash -x <<-EOCHROOT
     ${APT} dist-upgrade -y
 
-    if [[ "$DISTRO" != "server" ]];
+    if [[ {$DISTRO} != "server" ]];
 		then
 			zfs create 	"zroot/ROOT/"${ID}"/var/lib/AccountsService
     fi
 
-		case "$DISTRO" in
+		case ${DISTRO} in
 			server)	
 				##Server installation has a command line interface only.
 				##Minimal install: ubuntu-server-minimal
@@ -474,29 +474,29 @@ install_ubuntu_desktop() {
 				##Minimal install: ubuntu-desktop-minimal
 				${APT} install --yes ubuntu-desktop
 			;;
-#			kubuntu)
-#				##Ubuntu KDE plasma desktop install has a full GUI environment.
-#				##Select sddm as display manager.
-#				echo sddm shared/default-x-display-manager select sddm | debconf-set-selections
-#				${APT} install --yes kubuntu-desktop
-#			;;
-#			xubuntu)
-#				##Ubuntu xfce desktop install has a full GUI environment.
-#				##Select lightdm as display manager.
-#				echo lightdm shared/default-x-display-manager select lightdm | debconf-set-selections
-#				${APT} install --yes xubuntu-desktop
-#			;;
-#			budgie)
-#				##Ubuntu budgie desktop install has a full GUI environment.
-#				##Select lightdm as display manager.
-#				echo lightdm shared/default-x-display-manager select lightdm | debconf-set-selections
-#			;;
-#			MATE)
-#				##Ubuntu MATE desktop install has a full GUI environment.
-#				##Select lightdm as display manager.
-#				echo lightdm shared/default-x-display-manager select lightdm | debconf-set-selections
-#				${APT} install --yes ubuntu-mate-desktop
-#			;;
+			kubuntu)
+				##Ubuntu KDE plasma desktop install has a full GUI environment.
+				##Select sddm as display manager.
+				echo sddm shared/default-x-display-manager select sddm | debconf-set-selections
+				${APT} install --yes kubuntu-desktop
+			;;
+			xubuntu)
+				##Ubuntu xfce desktop install has a full GUI environment.
+				##Select lightdm as display manager.
+				echo lightdm shared/default-x-display-manager select lightdm | debconf-set-selections
+				${APT} install --yes xubuntu-desktop
+			;;
+			budgie)
+				##Ubuntu budgie desktop install has a full GUI environment.
+				##Select lightdm as display manager.
+				echo lightdm shared/default-x-display-manager select lightdm | debconf-set-selections
+			;;
+			MATE)
+				##Ubuntu MATE desktop install has a full GUI environment.
+				##Select lightdm as display manager.
+				echo lightdm shared/default-x-display-manager select lightdm | debconf-set-selections
+				${APT} install --yes ubuntu-mate-desktop
+			;;
       esac
 EOCHROOT
 }
@@ -559,7 +559,7 @@ EFI_install
 rEFInd_install
 groups_and_networks
 create_user
-install_ubuntu_desktop
+install_ubuntu
 uncompress_logs
 if [[ ${RTL8821CE} =~ "true" ]]; then
   rtl8821ce_install
