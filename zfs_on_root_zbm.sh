@@ -26,6 +26,8 @@ DEBUG="false"
 ########################################################################
 ########################################################################
 ########################################################################
+export GIT='/usr/bin/git'
+
 if [[ ${RUN} =~ "false" ]]; then
   echo "Refusing to run as \$RUN is set to false"
   exit 1
@@ -67,11 +69,20 @@ fi
 SWAPSIZE=$(free --giga | grep Mem | awk '{OFS="";print "+", $2 ,"G"}')
 export SWAPSIZE
 
+# Test for git existence, if not, install it
+git_test() {
+  if [[ ! -x /usr/bin/git ]]; then
+    ${APT} install -y git
+  fi
+}
+
 # Start installation
 initialize() {
   apt update
   apt -y install debootstrap gdisk zfsutils-linux vim git curl
-
+  if [[ ${NALA} =~ "true" ]]; then
+    apt install -y nala
+  fi
   zgenhostid -f 0x00bab10c
 }
 
@@ -187,9 +198,9 @@ EOF
   # Update the repository cache and system, install base packages, set up
   # console properties
   chroot "${MOUNTPOINT}" /bin/bash -x <<-EOCHROOT
-  apt update
-  apt upgrade -y
-  apt install -y --no-install-recommends linux-generic locales keyboard-configuration console-setup curl nala
+  ${APT} update
+  ${APT} upgrade -y
+  ${APT} install -y --no-install-recommends linux-generic locales keyboard-configuration console-setup curl nala
 EOCHROOT
 
   chroot "$MOUNTPOINT" /bin/bash -x <<-EOCHROOT
@@ -204,7 +215,7 @@ EOCHROOT
 
   # ZFS Configuration
   chroot "${MOUNTPOINT}" /bin/bash -x <<-EOCHROOT
-  ${APT} install -y dosfstools zfs-initramfs zfsutils-linux curl vim wget
+  ${APT} install -y dosfstools zfs-initramfs zfsutils-linux curl vim wget git
   systemctl enable zfs.target
   systemctl enable zfs-import-cache
   systemctl enable zfs-mount
@@ -299,8 +310,8 @@ EOCHROOT
 
   # Install rEFInd regular theme (Dark)
   cd /root
-  apt install -y git
-  git clone https://github.com/bobafetthotmail/refind-theme-regular.git
+  git_test
+  ${GIT} clone https://github.com/bobafetthotmail/refind-theme-regular.git
   rm -rf refind-theme-regular/{src,.git}
   rm refind-theme-regular/install.sh
   rm -rf "${MOUNTPOINT}"/boot/efi/EFI/refind/{regular-theme,refind-theme-regular}
@@ -431,10 +442,11 @@ cleanup() {
 rtl8821ce_install() {
   echo "------------> Installing RTL8821CE drivers <------------"
   chroot "${MOUNTPOINT}" /bin/bash -x <<-EOCHROOT
-  nala install -y git bc module-assistant build-essential dkms
+  nala install -y bc module-assistant build-essential dkms
   m-a prepare
   cd /root
-  git clone https://github.com/tomaspinho/rtl8821ce.git 
+  git_test
+  ${GIT} clone https://github.com/tomaspinho/rtl8821ce.git 
   cd rtl8821ce
   ./dkms-install.sh
   zfs set org.zfsbootmenu:commandline="quiet loglevel=4 splash pcie_aspm=off" zroot/ROOT
