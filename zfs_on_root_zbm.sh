@@ -73,9 +73,9 @@ export SWAPSIZE
 # Start installation
 initialize() {
   apt update
-  apt install -y debootstrap gdisk zfsutils-linux vim git curl nal
+  apt install -y debootstrap gdisk zfsutils-linux vim git curl nala
   if [[ ${NALA} =~ "true" ]]; then
-    apt install nala
+    apt install -yq nala
   fi
   zgenhostid -f 0x00bab10c
 }
