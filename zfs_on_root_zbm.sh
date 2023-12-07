@@ -286,7 +286,7 @@ EOCHROOT
 rEFInd_install() {
   echo "------------> Install rEFInd <-------------"
   chroot "${MOUNTPOINT}" /bin/bash -x <<-EOCHROOT
-  ${APT} install -y refind curl
+  yes | ${APT} install -y refind curl
   refind-install
   if [[ -a /boot/refind_linux.conf ]];
   then
