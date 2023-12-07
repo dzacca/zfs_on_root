@@ -288,6 +288,14 @@ efibootmgr -c -d "$DISK" -p "$BOOT_PART" \
 
 sync
 sleep 1
+if [[ ${DEBUG} =~ "true" ]]; then
+    echo "BOOT_DEVICE: ${BOOT_DEVICE}"
+    echo "SWAP_DEVICE: ${SWAP_DEVICE}"
+    echo "POOL_DEVICE: ${POOL_DEVICE}"
+    echo "DISK: ${DISK}"
+    echo "DISKID: ${DISKID}"
+    read -rp "Hit enter to continue"
+  fi
 EOCHROOT
 
   if [[ ${DEBUG} =~ "true" ]]; then
@@ -300,7 +308,7 @@ rEFInd_install() {
   echo "------------> Install rEFInd <-------------"
   chroot "${MOUNTPOINT}" /bin/bash -x <<-EOCHROOT
   ${APT} install -y curl
-  DEBIAN_FRONTEND=noninteractive ${APT} install -y refind
+  DEBIAN_FRONTEND=noninteractive ${APT} install -yq refind
   refind-install
   if [[ -a /boot/refind_linux.conf ]];
   then
@@ -311,7 +319,7 @@ rEFInd_install() {
 EOCHROOT
 
   # Install rEFInd regular theme (Dark)
-  cd /root
+  cd /root || return 1
   ${APT} install -y git
   /usr/bin/git clone https://github.com/bobafetthotmail/refind-theme-regular.git
   rm -rf refind-theme-regular/{src,.git}
@@ -394,7 +402,7 @@ create_user() {
   cp -a /etc/skel/. /home/${USERNAME}
   chown -R ${USERNAME}:${USERNAME} /home/${USERNAME}
   usermod -a -G adm,cdrom,dip,lpadmin,lxd,plugdev,sambashare,sudo ${USERNAME}
-  echo "diego ALL=(ALL) NOPASSWD: ALL" >/etc/sudoers.d/${USERNAME}
+  echo "${USERNAME} ALL=(ALL) NOPASSWD: ALL" >/etc/sudoers.d/${USERNAME}
   chown root:root /etc/sudoers.d/${USERNAME}
   chmod 400 /etc/sudoers.d/${USERNAME}
   echo -e "${USERNAME}:$PASSWORD" | chpasswd
