@@ -73,9 +73,9 @@ export SWAPSIZE
 # Start installation
 initialize() {
   apt update
-  apt -y install debootstrap gdisk zfsutils-linux vim git curl
+  apt install -y debootstrap gdisk zfsutils-linux vim git curl nal
   if [[ ${NALA} =~ "true" ]]; then
-    apt install -y nala
+    apt install nala
   fi
   zgenhostid -f 0x00bab10c
 }
@@ -197,6 +197,9 @@ EOF
   # Update the repository cache and system, install base packages, set up
   # console properties
   chroot "${MOUNTPOINT}" /bin/bash -x <<-EOCHROOT
+  if [[ ${NALA} =~ "true" ]]; then
+    apt install -yq nala
+  fi
   ${APT} update
   ${APT} upgrade -y
   ${APT} install -y --no-install-recommends linux-generic locales keyboard-configuration console-setup curl nala git
@@ -209,7 +212,8 @@ EOCHROOT
 
 		##set timezone
 		ln -fs /usr/share/zoneinfo/"$TIMEZONE" /etc/localtime
-		dpkg-reconfigure locales tzdata keyboard-configuration console-setup
+		#dpkg-reconfigure locales tzdata keyboard-configuration console-setup
+    dpkg-reconfigure locales keyboard-configuration
 EOCHROOT
 
   # ZFS Configuration
