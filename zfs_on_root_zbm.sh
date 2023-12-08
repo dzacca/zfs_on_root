@@ -27,7 +27,7 @@ DEBUG="false"
 ########################################################################
 ########################################################################
 ########################################################################
-POOLNAME=""${POOLNAME}"" #"${POOLNAME}" is the default name used in the HOW TO from ZFSBootMenu. You can change it to whateven you want
+POOLNAME="${POOLNAME}" #"${POOLNAME}" is the default name used in the HOW TO from ZFSBootMenu. You can change it to whateven you want
 
 if [[ ${RUN} =~ "false" ]]; then
   echo "Refusing to run as \$RUN is set to false"
