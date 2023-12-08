@@ -8,7 +8,7 @@ RUN="false"
 export DISTRO="desktop"           #server, desktop
 export RELEASE="mantic"           # The short name of the release as it appears in the repository (mantic, jammy, etc)
 export DISK="sda"                 # Enter the disk name only (sda, sdb, nvme1, etc)
-export PASSPHRASE="SomeRandomKey" # Encryption passphrase for zroot
+export PASSPHRASE="SomeRandomKey" # Encryption passphrase for "${POOLNAME}"
 export PASSWORD="mypassword"      # temporary root password & password for ${USERNAME}
 export HOSTNAME="myhost"          # hostname of the new machine
 export USERNAME="myuser"          # user to create in the new machine
@@ -27,7 +27,7 @@ DEBUG="false"
 ########################################################################
 ########################################################################
 ########################################################################
-POOLNAME="zroot" #zroot is the default name used in the HOW TO from ZFSBootMenu. You can change it to whateven you want
+POOLNAME=""${POOLNAME}"" #"${POOLNAME}" is the default name used in the HOW TO from ZFSBootMenu. You can change it to whateven you want
 
 if [[ ${RUN} =~ "false" ]]; then
   echo "Refusing to run as \$RUN is set to false"
@@ -127,8 +127,8 @@ disk_prepare() {
 zfs_pool_create() {
   # Create the zpool
   echo "------------> Create zpool <------------"
-  echo "${PASSPHRASE}" >/etc/zfs/zroot.key
-  chmod 000 /etc/zfs/zroot.key
+  echo "${PASSPHRASE}" >/etc/zfs/"${POOLNAME}".key
+  chmod 000 /etc/zfs/"${POOLNAME}".key
 
   zpool create -f -o ashift=12 \
     -O compression=lz4 \
@@ -136,23 +136,36 @@ zfs_pool_create() {
     -O xattr=sa \
     -O relatime=on \
     -O encryption=aes-256-gcm \
-    -O keylocation=file:///etc/zfs/zroot.key \
+    -O keylocation=file:///etc/zfs/"${POOLNAME}".key \
     -O keyformat=passphrase \
     -o autotrim=on \
     -o compatibility=openzfs-2.1-linux \
-    -m none zroot "$POOL_DEVICE"
+    -m none "${POOLNAME}" "$POOL_DEVICE"
 
   sync
   sleep 2
 
   # Create initial file systems
-  zfs create -o mountpoint=none zroot/ROOT
-  sysc
-  sleep 2
-  zfs create -o mountpoint=/ -o canmount=noauto zroot/ROOT/"${ID}"
-  zfs create -o mountpoint=/home zroot/home
+  zfs create -o mountpoint=none "${POOLNAME}"/ROOT
   sync
-  zpool set bootfs=zroot/ROOT/"${ID}" zroot
+  sleep 2
+  zfs create -o mountpoint=/ -o canmount=noauto "${POOLNAME}"/ROOT/"${ID}"
+  zfs create -o mountpoint=/home "${POOLNAME}"/home
+  sync
+  zpool set bootfs="${POOLNAME}"/ROOT/"${ID}" "${POOLNAME}"
+
+  # Export, then re-import with a temporary mountpoint of "${MOUNTPOINT}"
+  zpool export "${POOLNAME}"
+  zpool import -N -R "${MOUNTPOINT}" "${POOLNAME}"
+  ## Remove the need for manual prompt of the passphrase
+  echo "${PASSPHRASE}" >/tmp/zpass
+  sync
+  chmod 0400 /tmp/zpass
+  zfs load-key -L file:///tmp/zpass "${POOLNAME}"
+  rm /tmp/zpass
+
+  zfs mount "${POOLNAME}"/ROOT/"${ID}"
+  zfs mount "${POOLNAME}"/home
 
   ##Create datasets
   ##Aim is to separate OS from user data.
@@ -161,42 +174,29 @@ zfs_pool_create() {
   ##https://openzfs.github.io/openzfs-docs/Getting%20Started/Debian/Debian%20Buster%20Root%20on%20ZFS.html#step-3-system-installation
   ##"-o canmount=off" is for a system directory that should rollback with the rest of the system.
 
-  zfs create zroot/srv ##server webserver content
-  zfs create -o canmount=off zroot/usr
-  zfs create zroot/usr/local ##locally compiled software
-  zfs create -o canmount=off zroot/var
-  zfs create -o canmount=off zroot/var/lib
-  zfs create zroot/var/games ##game files
-  zfs create zroot/var/log   ##log files
-  zfs create zroot/var/mail  ##local mails
-  zfs create zroot/var/snap  ##snaps handle revisions themselves
-  zfs create zroot/var/spool ##printing tasks
-  zfs create zroot/var/www   ##server webserver content
+  zfs create "${POOLNAME}"/srv ##server webserver content
+  zfs create -o canmount=off "${POOLNAME}"/usr
+  zfs create "${POOLNAME}"/usr/local ##locally compiled software
+  zfs create -o canmount=off "${POOLNAME}"/var
+  zfs create -o canmount=off "${POOLNAME}"/var/lib
+  zfs create "${POOLNAME}"/var/games ##game files
+  zfs create "${POOLNAME}"/var/log   ##log files
+  zfs create "${POOLNAME}"/var/mail  ##local mails
+  zfs create "${POOLNAME}"/var/snap  ##snaps handle revisions themselves
+  zfs create "${POOLNAME}"/var/spool ##printing tasks
+  zfs create "${POOLNAME}"/var/www   ##server webserver content
 
   ##USERDATA datasets
-  zfs create zroot/home
-  zfs create -o mountpoint=/root zroot/home/root
+  zfs create "${POOLNAME}"/home
+  zfs create -o mountpoint=/root "${POOLNAME}"/home/root
   chmod 700 "${MOUNTPOINT}"/root
 
   ##optional
   ##exclude from snapshots
-  zfs create -o com.sun:auto-snapshot=false zroot/var/cache
-  zfs create -o com.sun:auto-snapshot=false zroot/var/tmp
+  zfs create -o com.sun:auto-snapshot=false "${POOLNAME}"/var/cache
+  zfs create -o com.sun:auto-snapshot=false "${POOLNAME}"/var/tmp
   chmod 1777 "${MOUNTPOINT}"/var/tmp
-  zfs create -o com.sun:auto-snapshot=false zroot/var/lib/docker ##Docker manages its own datasets & snapshots
-
-  # Export, then re-import with a temporary mountpoint of "${MOUNTPOINT}"
-  zpool export zroot
-  zpool import -N -R "${MOUNTPOINT}" zroot
-  ## Remove the need for manual prompt of the passphrase
-  echo "${PASSPHRASE}" >/tmp/zpass
-  sync
-  chmod 0400 /tmp/zpass
-  zfs load-key -L file:///tmp/zpass zroot
-  rm /tmp/zpass
-
-  zfs mount zroot/ROOT/"${ID}"
-  zfs mount zroot/home
+  zfs create -o com.sun:auto-snapshot=false "${POOLNAME}"/var/lib/docker ##Docker manages its own datasets & snapshots
 
   # Update device symlinks
   udevadm trigger
@@ -211,7 +211,7 @@ ubuntu_debootstrap() {
   cp /etc/hostid "${MOUNTPOINT}"/etc/hostid
   cp /etc/resolv.conf "${MOUNTPOINT}"/etc/
   mkdir "${MOUNTPOINT}"/etc/zfs
-  cp /etc/zfs/zroot.key "${MOUNTPOINT}"/etc/zfs
+  cp /etc/zfs/"${POOLNAME}".key "${MOUNTPOINT}"/etc/zfs
 
   # Chroot into the new OS
   mount -t proc proc "${MOUNTPOINT}"/proc
@@ -302,8 +302,8 @@ EOF
   fi
 
   chroot "${MOUNTPOINT}" /bin/bash -x <<-EOCHROOT
-  zfs set org.zfsbootmenu:commandline="quiet loglevel=4" zroot/ROOT
-  zfs set org.zfsbootmenu:keysource="zroot/ROOT/${ID}" zroot
+  zfs set org.zfsbootmenu:commandline="quiet loglevel=4" "${POOLNAME}"/ROOT
+  zfs set org.zfsbootmenu:keysource=""${POOLNAME}"/ROOT/${ID}" "${POOLNAME}"
   mkfs.vfat -F32 "$BOOT_DEVICE"
 EOCHROOT
 
@@ -470,7 +470,7 @@ install_ubuntu() {
 
     if [[ ${DISTRO} != "server" ]];
 		then
-			zfs create 	"zroot/ROOT/"${ID}"/var/lib/AccountsService
+			zfs create 	""${POOLNAME}"/ROOT/"${ID}"/var/lib/AccountsService
     fi
 
     if [[ ${DEBUG} =="true" ]]; then
@@ -545,7 +545,7 @@ cleanup() {
   sleep 5
   umount -n -R "${MOUNTPOINT}" >/dev/null 2>&1
 
-  zpool export zroot
+  zpool export "${POOLNAME}"
 }
 
 # Download and install RTL8821CE drivers
@@ -559,7 +559,7 @@ rtl8821ce_install() {
   /usr/bin/git clone https://github.com/tomaspinho/rtl8821ce.git
   cd rtl8821ce
   ./dkms-install.sh
-  zfs set org.zfsbootmenu:commandline="quiet loglevel=4 splash pcie_aspm=off" zroot/ROOT
+  zfs set org.zfsbootmenu:commandline="quiet loglevel=4 splash pcie_aspm=off" "${POOLNAME}"/ROOT
   echo "blacklist rtw88_8821ce" >> /etc/modprobe.d/blacklist.conf
 EOCHROOT
 }
