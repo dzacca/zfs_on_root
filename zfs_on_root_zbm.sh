@@ -200,7 +200,7 @@ zfs_pool_create() {
 }
 
 # Install Ubuntu
-ubuntu_install() {
+ubuntu_debootstrap() {
   echo "------------> Debootstrap Ubuntu ${RELEASE} <------------"
   debootstrap ${RELEASE} "${MOUNTPOINT}"
 
@@ -464,11 +464,11 @@ install_ubuntu() {
   chroot "${MOUNTPOINT}" /bin/bash -x <<-EOCHROOT
     ${APT} dist-upgrade -y
 
-    if [[ {$DISTRO} != "server" ]];
+    if [[ ${DISTRO} != "server" ]];
 		then
 			zfs create 	"zroot/ROOT/"${ID}"/var/lib/AccountsService
     fi
-    # ${APT} install -y ubuntu-desktop
+
     if [[ ${DEBUG} =="true" ]]; then
       read -r -p "Press enter to continue"
     fi
@@ -476,7 +476,7 @@ install_ubuntu() {
     #TODO: Fix the whole case below
 
 		 case ${DISTRO} in
-		 	server)	
+		 	server)
 		 		##Server installation has a command line interface only.
 		 		##Minimal install: ubuntu-server-minimal
 		 		${APT} install -y ubuntu-server
@@ -486,6 +486,7 @@ install_ubuntu() {
 		 		##Minimal install: ubuntu-desktop-minimal
 				${APT} install -y ubuntu-desktop
 		 	;;
+      esac
 		# 	kubuntu)
 		# 		##Ubuntu KDE plasma desktop install has a full GUI environment.
 		# 		##Select sddm as display manager.
@@ -509,7 +510,7 @@ install_ubuntu() {
 		# 		echo lightdm shared/default-x-display-manager select lightdm | debconf-set-selections
 		# 		${APT} install --yes ubuntu-mate-desktop
 		# 	;;
-    esac
+    # esac
 EOCHROOT
 }
 
@@ -551,7 +552,7 @@ rtl8821ce_install() {
   m-a prepare
   cd /root
   ${APT} install -y git
-  /usr/bin/git clone https://github.com/tomaspinho/rtl8821ce.git 
+  /usr/bin/git clone https://github.com/tomaspinho/rtl8821ce.git
   cd rtl8821ce
   ./dkms-install.sh
   zfs set org.zfsbootmenu:commandline="quiet loglevel=4 splash pcie_aspm=off" zroot/ROOT
@@ -564,7 +565,7 @@ EOCHROOT
 initialize
 disk_prepare
 zfs_pool_create
-ubuntu_install
+ubuntu_debootstrap
 create_swap
 ZBM_install
 EFI_install
