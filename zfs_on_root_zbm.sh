@@ -27,6 +27,7 @@ DEBUG="false"
 ########################################################################
 ########################################################################
 ########################################################################
+POOLNAME="zroot" #zroot is the default name used in the HOW TO from ZFSBootMenu. You can change it to whateven you want
 
 if [[ ${RUN} =~ "false" ]]; then
   echo "Refusing to run as \$RUN is set to false"
@@ -44,7 +45,7 @@ else
   export APT="/usr/bin/apt"
 fi
 
-git_checkout() {
+git_check() {
   if [[ ! -x /usr/bin/git ]]; then
     apt install -y git
   fi
@@ -477,7 +478,7 @@ install_ubuntu() {
 
     #TODO: Unlock more cases
 
-		 case ${DISTRO} in
+		case ${DISTRO} in
 		 	server)
 		 		##Server installation has a command line interface only.
 		 		##Minimal install: ubuntu-server-minimal
@@ -488,7 +489,7 @@ install_ubuntu() {
 		 		##Minimal install: ubuntu-desktop-minimal
 				${APT} install -y ubuntu-desktop
 		 	;;
-      esac
+    esac
 		# 	kubuntu)
 		# 		##Ubuntu KDE plasma desktop install has a full GUI environment.
 		# 		##Select sddm as display manager.
