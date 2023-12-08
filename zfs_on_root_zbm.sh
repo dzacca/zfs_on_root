@@ -263,6 +263,7 @@ EOCHROOT
 
 		##set timezone
 		ln -fs /usr/share/zoneinfo/"$TIMEZONE" /etc/localtime
+    # TODO: Make the reconfigurations below selectable by variables
 		#dpkg-reconfigure locales tzdata keyboard-configuration console-setup
     dpkg-reconfigure keyboard-configuration
 EOCHROOT
