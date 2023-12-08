@@ -12,7 +12,6 @@ export PASSPHRASE="SomeRandomKey" # Encryption passphrase for "${POOLNAME}"
 export PASSWORD="mypassword"      # temporary root password & password for ${USERNAME}
 export HOSTNAME="myhost"          # hostname of the new machine
 export USERNAME="myuser"          # user to create in the new machine
-export NALA="false"               # Install and use nala instead of apt within the chrooted environment
 export MOUNTPOINT="/mnt"          # debootstrap target location
 export LOCALE="en_US.UTF-8"       # New install language setting.
 export TIMEZONE="Europe/Rome"     # New install timezone setting.
@@ -37,13 +36,8 @@ fi
 DISKID=/dev/disk/by-id/$(ls -al /dev/disk/by-id | grep ${DISK} | awk '{print $9}' | head -1)
 export DISKID
 DISK="/dev/${DISK}"
-if [[ ${NALA} =~ "true" ]]; then
-  # TODO: Fix nala usage
-  export APT="/usr/bin/nala"
-  # export APT="/usr/bin/apt"
-else
-  export APT="/usr/bin/apt"
-fi
+export APT="/usr/bin/apt"
+export DEBIAN_FRONTEND="noninteractive"
 
 git_check() {
   if [[ ! -x /usr/bin/git ]]; then
@@ -82,9 +76,6 @@ export SWAPSIZE
 initialize() {
   apt update
   apt install -y debootstrap gdisk zfsutils-linux vim git curl nala
-  if [[ ${NALA} =~ "true" ]]; then
-    apt install -yq nala
-  fi
   zgenhostid -f 0x00bab10c
 }
 
@@ -247,9 +238,6 @@ EOF
   # Update the repository cache and system, install base packages, set up
   # console properties
   chroot "${MOUNTPOINT}" /bin/bash -x <<-EOCHROOT
-  if [[ ${NALA} =~ "true" ]]; then
-    apt install -yq nala
-  fi
   ${APT} update
   ${APT} upgrade -y
   ${APT} install -y --no-install-recommends linux-generic locales keyboard-configuration console-setup curl nala git
