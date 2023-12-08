@@ -158,36 +158,6 @@ zfs_pool_create() {
   zfs mount "${POOLNAME}"/ROOT/"${ID}"
   zfs mount "${POOLNAME}"/home
 
-  ##Create datasets
-  ##Aim is to separate OS from user data.
-  ##Allows root filesystem to be rolled back without rolling back user data such as logs.
-  ##https://didrocks.fr/2020/06/16/zfs-focus-on-ubuntu-20.04-lts-zsys-dataset-layout/
-  ##https://openzfs.github.io/openzfs-docs/Getting%20Started/Debian/Debian%20Buster%20Root%20on%20ZFS.html#step-3-system-installation
-  ##"-o canmount=off" is for a system directory that should rollback with the rest of the system.
-
-  zfs create "${POOLNAME}"/srv ##server webserver content
-  zfs create -o canmount=off "${POOLNAME}"/usr
-  zfs create "${POOLNAME}"/usr/local ##locally compiled software
-  zfs create -o canmount=off "${POOLNAME}"/var
-  zfs create -o canmount=off "${POOLNAME}"/var/lib
-  zfs create "${POOLNAME}"/var/games ##game files
-  zfs create "${POOLNAME}"/var/log   ##log files
-  zfs create "${POOLNAME}"/var/mail  ##local mails
-  zfs create "${POOLNAME}"/var/snap  ##snaps handle revisions themselves
-  zfs create "${POOLNAME}"/var/spool ##printing tasks
-  zfs create "${POOLNAME}"/var/www   ##server webserver content
-
-  ##USERDATA datasets
-  zfs create -o mountpoint=/root "${POOLNAME}"/root
-  chmod 700 "${MOUNTPOINT}"/root
-
-  ##optional
-  ##exclude from snapshots
-  zfs create -o com.sun:auto-snapshot=false "${POOLNAME}"/var/cache
-  zfs create -o com.sun:auto-snapshot=false "${POOLNAME}"/var/tmp
-  chmod 1777 "${MOUNTPOINT}"/var/tmp
-  zfs create -o com.sun:auto-snapshot=false "${POOLNAME}"/var/lib/docker ##Docker manages its own datasets & snapshots
-
   # Update device symlinks
   udevadm trigger
 }
