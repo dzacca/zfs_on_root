@@ -469,7 +469,7 @@ install_ubuntu() {
 
     if [[ ${DISTRO} != "server" ]];
 		then
-			zfs create 	""${POOLNAME}"/ROOT/"${ID}"/var/lib/AccountsService
+			zfs create 	"${POOLNAME}"/ROOT/"${ID}"/var/lib/AccountsService
     fi
 
     if [[ ${DEBUG} =="true" ]]; then
