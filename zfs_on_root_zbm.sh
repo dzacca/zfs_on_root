@@ -187,8 +187,7 @@ zfs_pool_create() {
   zfs create "${POOLNAME}"/var/www   ##server webserver content
 
   ##USERDATA datasets
-  zfs create "${POOLNAME}"/home
-  zfs create -o mountpoint=/root "${POOLNAME}"/home/root
+  zfs create -o mountpoint=/root "${POOLNAME}"/root
   chmod 700 "${MOUNTPOINT}"/root
 
   ##optional
