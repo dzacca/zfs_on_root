@@ -37,7 +37,7 @@ DISKID=/dev/disk/by-id/$(ls -al /dev/disk/by-id | grep ${DISK} | awk '{print $9}
 export DISKID
 DISK="/dev/${DISK}"
 export APT="/usr/bin/apt"
-export DEBIAN_FRONTEND="noninteractive"
+#export DEBIAN_FRONTEND="noninteractive"
 
 git_check() {
   if [[ ! -x /usr/bin/git ]]; then
