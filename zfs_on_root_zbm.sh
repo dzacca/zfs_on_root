@@ -44,6 +44,12 @@ else
   export APT="/usr/bin/apt"
 fi
 
+git_checkout() {
+  if [[ ! -x /usr/bin/git ]]; then
+    apt install -y git
+  fi
+}
+
 source /etc/os-release
 export ID
 export BOOT_DISK="${DISKID}"
@@ -363,7 +369,7 @@ EOCHROOT
 
   # Install rEFInd regular theme (Dark)
   cd /root || return 1
-  ${APT} install -y git
+  git_check
   /usr/bin/git clone https://github.com/bobafetthotmail/refind-theme-regular.git
   rm -rf refind-theme-regular/{src,.git}
   rm refind-theme-regular/install.sh >/dev/null 2>&1
