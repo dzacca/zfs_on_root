@@ -38,8 +38,8 @@ export DISKID
 DISK="/dev/${DISK}"
 if [[ ${NALA} =~ "true" ]]; then
   # TODO: Fix nala usage
-  # export APT="/usr/bin/nala"
-  export APT="/usr/bin/apt"
+  export APT="/usr/bin/nala"
+  # export APT="/usr/bin/apt"
 else
   export APT="/usr/bin/apt"
 fi
