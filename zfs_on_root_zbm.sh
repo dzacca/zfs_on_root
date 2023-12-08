@@ -5,14 +5,14 @@
 RUN="false"
 
 # Variables - Populate/tweak this before launching the script
-export DISTRO="desktop" #server, desktop
-export RELEASE="mantic"
+export DISTRO="desktop"           #server, desktop
+export RELEASE="mantic"           # The short name of the release as it appears in the repository (mantic, jammy, etc)
 export DISK="sda"                 # Enter the disk name only (sda, sdb, nvme1, etc)
 export PASSPHRASE="SomeRandomKey" # Encryption passphrase for zroot
 export PASSWORD="mypassword"      # temporary root password & password for ${USERNAME}
 export HOSTNAME="myhost"          # hostname of the new machine
 export USERNAME="myuser"          # user to create in the new machine
-export NALA="false"               # Install and use nala instead of apt (leave it to false as currently buggy)
+export NALA="false"               # Install and use nala instead of apt within the chrooted environment
 export MOUNTPOINT="/mnt"          # debootstrap target location
 export LOCALE="en_US.UTF-8"       # New install language setting.
 export TIMEZONE="Europe/Rome"     # New install timezone setting.
@@ -146,9 +146,11 @@ zfs_pool_create() {
 
   # Create initial file systems
   zfs create -o mountpoint=none zroot/ROOT
+  sysc
+  sleep 2
   zfs create -o mountpoint=/ -o canmount=noauto zroot/ROOT/"${ID}"
   zfs create -o mountpoint=/home zroot/home
-
+  sync
   zpool set bootfs=zroot/ROOT/"${ID}" zroot
 
   ##Create datasets
@@ -473,7 +475,7 @@ install_ubuntu() {
       read -r -p "Press enter to continue"
     fi
 
-    #TODO: Fix the whole case below
+    #TODO: Unlock more cases
 
 		 case ${DISTRO} in
 		 	server)
