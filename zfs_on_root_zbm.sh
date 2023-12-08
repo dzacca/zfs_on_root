@@ -318,7 +318,7 @@ rEFInd_install() {
   echo "------------> Install rEFInd <-------------"
   chroot "${MOUNTPOINT}" /bin/bash -x <<-EOCHROOT
   ${APT} install -y curl
-  DEBIAN_FRONTEND=noninteractive ${APT} install -yq refind
+  ${APT} install -y refind
   refind-install
   if [[ -a /boot/refind_linux.conf ]];
   then
