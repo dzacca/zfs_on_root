@@ -9,7 +9,7 @@ The script is based on the documentation from
 The script currently install Ubuntu on a single disk, with zpool encrypted with native ZFS encryption, and no ZSys installation (I don't use ZSys and it will be deprecated in any case). The layout of the partition is a modified version of what used by ZFSBootMenu as I create the following:
 
 - Partition 1: EFI
-- Partition 2: Swap (size is automatically calculated by the script based on the amount of memory you have
+- Partition 2: Swap (size is automatically calculated by the script and it's set at the same size of the amount of memory you have)
 - Partition 3: zroot
 
 The script is still work in progress and is not yet meant for production use.
