@@ -463,6 +463,9 @@ install_ubuntu() {
 			zfs create 	"zroot/ROOT/"${ID}"/var/lib/AccountsService
     fi
     # ${APT} install -y ubuntu-desktop
+    if [[ ${DEBUG} =="true" ]]; then
+      read -r -p "Press enter to continue"
+    fi
 
     #TODO: Fix the whole case below
 
