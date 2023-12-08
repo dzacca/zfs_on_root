@@ -462,21 +462,21 @@ install_ubuntu() {
 		then
 			zfs create 	"zroot/ROOT/"${ID}"/var/lib/AccountsService
     fi
-    ${APT} install -y ubuntu-desktop
+    # ${APT} install -y ubuntu-desktop
 
     #TODO: Fix the whole case below
 
-		# case ${DISTRO} in
-		# 	server)	
-		# 		##Server installation has a command line interface only.
-		# 		##Minimal install: ubuntu-server-minimal
-		# 		${APT} install --yes ubuntu-server
-		# 	;;
-		# 	desktop)
-		# 		##Ubuntu default desktop install has a full GUI environment.
-		# 		##Minimal install: ubuntu-desktop-minimal
-		# 		${APT} install --yes ubuntu-desktop
-		# 	;;
+		 case ${DISTRO} in
+		 	server)	
+		 		##Server installation has a command line interface only.
+		 		##Minimal install: ubuntu-server-minimal
+		 		${APT} install -y ubuntu-server
+		 	;;
+		 	desktop)
+		 		##Ubuntu default desktop install has a full GUI environment.
+		 		##Minimal install: ubuntu-desktop-minimal
+				${APT} install -y ubuntu-desktop
+		 	;;
 		# 	kubuntu)
 		# 		##Ubuntu KDE plasma desktop install has a full GUI environment.
 		# 		##Select sddm as display manager.
@@ -500,7 +500,7 @@ install_ubuntu() {
 		# 		echo lightdm shared/default-x-display-manager select lightdm | debconf-set-selections
 		# 		${APT} install --yes ubuntu-mate-desktop
 		# 	;;
-    #   esac
+    esac
 EOCHROOT
 }
 
