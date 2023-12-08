@@ -425,12 +425,6 @@ install_ubuntu() {
   chroot "${MOUNTPOINT}" /bin/bash -x <<-EOCHROOT
     ${APT} dist-upgrade -y
 
-    if [[ ${DISTRO} != "server" ]];
-		then
-      mkdir -p /"${MOUNTPOINT}"/var/lib/AccountsService
-			zfs create 	"${POOLNAME}"/ROOT/"${ID}"/var/lib/AccountsService
-    fi
-
     if [[ ${DEBUG} =="true" ]]; then
       read -r -p "Press enter to continue"
     fi
