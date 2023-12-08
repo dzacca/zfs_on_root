@@ -262,6 +262,8 @@ EOF
   zfs set org.zfsbootmenu:commandline="quiet loglevel=4 splash" "${POOLNAME}"/ROOT
   zfs set org.zfsbootmenu:keysource="${POOLNAME}"/ROOT/${ID}" "${POOLNAME}"
   mkfs.vfat -v -F32 "$BOOT_DEVICE"
+  sync
+  sleep 2
 EOCHROOT
 
   # Install ZBM and configure EFI boot entries
