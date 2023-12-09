@@ -1,7 +1,5 @@
 # ZFS_ON_ROOT
 
-## CURRENTLY BROKEN - DO NOT USE
-
 ## for Ubuntu 23.04 and higher
 
 This is a very basic script that I created to make it quicker for me
