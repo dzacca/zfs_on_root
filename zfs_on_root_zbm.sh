@@ -22,7 +22,7 @@ REBOOT="false"
 
 ########################################################################
 #### Enable/disable debug. Only used during the development phase.
-DEBUG="false"
+DEBUG="true"
 ########################################################################
 ########################################################################
 ########################################################################
@@ -45,6 +45,26 @@ git_check() {
   fi
 }
 
+debug_me() {
+  if [[ ${DEBUG} =~ "true" ]]; then
+    echo "BOOT_DEVICE: ${BOOT_DEVICE}"
+    echo "SWAP_DEVICE: ${SWAP_DEVICE}"
+    echo "POOL_DEVICE: ${POOL_DEVICE}"
+    echo "DISK: ${DISK}"
+    echo "DISKID: ${DISKID}"
+    if [[ -x /usr/sbin/fdisk ]]; then
+      /usr/sbin/fdisk -l "${DISKID}"
+    fi
+    if [[ -x /usr/sbin/blkid ]]; then
+      /usr/sbin/blkid "${DISKID}"
+    fi
+    read -rp "Hit enter to continue"
+    if [[ -x /usr/sbin/zpool ]]; then
+      /usr/sbin/zpool "${POOLNAME}"
+    fi
+  fi
+}
+
 source /etc/os-release
 export ID
 export BOOT_DISK="${DISKID}"
@@ -59,14 +79,7 @@ export POOL_DISK="${DISKID}"
 export POOL_PART="3"
 export POOL_DEVICE="${POOL_DISK}-part${POOL_PART}"
 
-if [[ ${DEBUG} =~ "true" ]]; then
-  echo "BOOT_DEVICE: ${BOOT_DEVICE}"
-  echo "SWAP_DEVICE: ${SWAP_DEVICE}"
-  echo "POOL_DEVICE: ${POOL_DEVICE}"
-  echo "DISK: ${DISK}"
-  echo "DISKID: ${DISKID}"
-  read -rp "Hit enter to continue"
-fi
+debug_me
 
 # Swapsize autocalculated to be = Mem size
 SWAPSIZE=$(free --giga | grep Mem | awk '{OFS="";print "+", $2 ,"G"}')
@@ -81,15 +94,7 @@ initialize() {
 
 # Disk preparation
 disk_prepare() {
-  echo "------------> Preparing ${DISK} <------------"
-  if [[ ${DEBUG} =~ "true" ]]; then
-    echo "BOOT_DEVICE: ${BOOT_DEVICE}"
-    echo "SWAP_DEVICE: ${SWAP_DEVICE}"
-    echo "POOL_DEVICE: ${POOL_DEVICE}"
-    echo "DISK: ${DISK}"
-    echo "DISKID: ${DISKID}"
-    read -rp "Hit enter to continue"
-  fi
+  debug_me
 
   wipefs -a "${DISKID}"
   blkdiscard -f "${DISKID}"
@@ -112,6 +117,7 @@ disk_prepare() {
   sgdisk -n "${POOL_PART}:0:-10m" -t "${POOL_PART}:BF00" "${POOL_DISK}"
   sync
   sleep 2
+  debug_me
 }
 
 # ZFS pool creation
@@ -160,6 +166,7 @@ zfs_pool_create() {
 
   # Update device symlinks
   udevadm trigger
+  debug_me
 }
 
 # Install Ubuntu
@@ -249,15 +256,7 @@ EOF
 
   mkdir -p "${MOUNTPOINT}"/boot/efi
 
-  if [[ ${DEBUG} =~ "true" ]]; then
-    echo "BOOT_DEVICE: ${BOOT_DEVICE}"
-    echo "SWAP_DEVICE: ${SWAP_DEVICE}"
-    echo "POOL_DEVICE: ${POOL_DEVICE}"
-    echo "DISK: ${DISK}"
-    echo "DISKID: ${DISKID}"
-    read -rp "Hit enter to continue"
-  fi
-
+  debug_me
   chroot "${MOUNTPOINT}" /bin/bash -x <<-EOCHROOT
   zfs set org.zfsbootmenu:commandline="quiet loglevel=4 splash" "${POOLNAME}"/ROOT
   zfs set org.zfsbootmenu:keysource="${POOLNAME}"/ROOT/${ID}" "${POOLNAME}"
@@ -279,15 +278,7 @@ EOCHROOT
 # Create boot entry with efibootmgr
 EFI_install() {
   echo "------------> Installing efibootmgr <------------"
-  if [[ ${DEBUG} =~ "true" ]]; then
-    echo "BOOT_DEVICE: ${BOOT_DEVICE}"
-    echo "SWAP_DEVICE: ${SWAP_DEVICE}"
-    echo "POOL_DEVICE: ${POOL_DEVICE}"
-    echo "DISK: ${DISK}"
-    echo "DISKID: ${DISKID}"
-    read -rp "Hit enter to continue"
-  fi
-
+  debug_me
   chroot "${MOUNTPOINT}" /bin/bash -x <<-EOCHROOT
 ${APT} install -y efibootmgr
 efibootmgr -c -d "$DISK" -p "$BOOT_PART" \
@@ -300,14 +291,7 @@ efibootmgr -c -d "$DISK" -p "$BOOT_PART" \
 
 sync
 sleep 1
-if [[ ${DEBUG} =~ "true" ]]; then
-    echo "BOOT_DEVICE: ${BOOT_DEVICE}"
-    echo "SWAP_DEVICE: ${SWAP_DEVICE}"
-    echo "POOL_DEVICE: ${POOL_DEVICE}"
-    echo "DISK: ${DISK}"
-    echo "DISKID: ${DISKID}"
-    read -rp "Hit enter to continue"
-  fi
+debug_me
 EOCHROOT
 
   if [[ ${DEBUG} =~ "true" ]]; then
@@ -377,15 +361,7 @@ EOF
 create_swap() {
   echo "------------> Create swap partition <------------"
 
-  if [[ ${DEBUG} =~ "true" ]]; then
-    echo "BOOT_DEVICE: ${BOOT_DEVICE}"
-    echo "SWAP_DEVICE: ${SWAP_DEVICE}"
-    echo "POOL_DEVICE: ${POOL_DEVICE}"
-    echo "DISK: ${DISK}"
-    echo "DISKID: ${DISKID}"
-    read -rp "Hit enter to continue"
-  fi
-
+  debug_me
   echo swap "${DISKID}"-part2 /dev/urandom \
     swap,cipher=aes-xts-plain64:sha256,size=512 >>"${MOUNTPOINT}"/etc/crypttab
   echo /dev/mapper/swap none swap defaults 0 0 >>"${MOUNTPOINT}"/etc/fstab
