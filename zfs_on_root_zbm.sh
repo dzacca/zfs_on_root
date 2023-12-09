@@ -399,23 +399,24 @@ install_ubuntu() {
   chroot "${MOUNTPOINT}" /bin/bash -x <<-EOCHROOT
     ${APT} dist-upgrade -y
 
-    if [[ ${DEBUG} =="true" ]]; then
-      read -r -p "Press enter to continue"
-    fi
+    debug_me
 
     #TODO: Unlock more cases
 
-		case ${DISTRO} in
-		 	server)
-		 		##Server installation has a command line interface only.
-		 		##Minimal install: ubuntu-server-minimal
-		 		${APT} install -y ubuntu-server
-		 	;;
-		 	desktop)
-		 		##Ubuntu default desktop install has a full GUI environment.
-		 		##Minimal install: ubuntu-desktop-minimal
-				${APT} install -y ubuntu-desktop
-		 	;;
+		case "${DISTRO}" in
+		server)
+		##Server installation has a command line interface only.
+		##Minimal install: ubuntu-server-minimal
+		${APT} install -y ubuntu-server
+		;;
+		desktop)
+		##Ubuntu default desktop install has a full GUI environment.
+		##Minimal install: ubuntu-desktop-minimal
+			${APT} install -y ubuntu-desktop
+		;;
+    *)
+    echo "No distro selected."
+    ;;
     esac
 		# 	kubuntu)
 		# 		##Ubuntu KDE plasma desktop install has a full GUI environment.
