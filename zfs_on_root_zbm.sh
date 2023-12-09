@@ -259,7 +259,7 @@ EOF
   debug_me
   chroot "${MOUNTPOINT}" /bin/bash -x <<-EOCHROOT
   zfs set org.zfsbootmenu:commandline="quiet loglevel=4 splash" "${POOLNAME}"/ROOT
-  zfs set org.zfsbootmenu:keysource="${POOLNAME}"/ROOT/${ID}" "${POOLNAME}"
+  zfs set org.zfsbootmenu:keysource="${POOLNAME}"/ROOT/"${ID}" "${POOLNAME}"
   mkfs.vfat -v -F32 "$BOOT_DEVICE" # the EFI partition must be formatted as FAT32
   sync
   sleep 2
