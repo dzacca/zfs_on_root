@@ -60,7 +60,7 @@ debug_me() {
     fi
     read -rp "Hit enter to continue"
     if [[ -x /usr/sbin/zpool ]]; then
-      /usr/sbin/zpool "${POOLNAME}"
+      /usr/sbin/zpool status "${POOLNAME}"
     fi
   fi
 }
