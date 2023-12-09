@@ -293,10 +293,6 @@ sync
 sleep 1
 debug_me
 EOCHROOT
-
-  if [[ ${DEBUG} =~ "true" ]]; then
-    read -rp "Finished w/ efibootmgr... waiting."
-  fi
 }
 
 # Install rEFInd
