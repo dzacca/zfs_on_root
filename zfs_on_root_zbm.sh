@@ -5,17 +5,18 @@
 RUN="false"
 
 # Variables - Populate/tweak this before launching the script
-export DISTRO="desktop"           #server, desktop
-export RELEASE="mantic"           # The short name of the release as it appears in the repository (mantic, jammy, etc)
-export DISK="sda"                 # Enter the disk name only (sda, sdb, nvme1, etc)
-export PASSPHRASE="SomeRandomKey" # Encryption passphrase for "${POOLNAME}"
-export PASSWORD="mypassword"      # temporary root password & password for ${USERNAME}
-export HOSTNAME="myhost"          # hostname of the new machine
-export USERNAME="myuser"          # user to create in the new machine
-export MOUNTPOINT="/mnt"          # debootstrap target location
-export LOCALE="en_US.UTF-8"       # New install language setting.
-export TIMEZONE="Europe/Rome"     # New install timezone setting.
-export RTL8821CE="false"          # Download and install RTL8821CE drivers as the default ones are faulty
+DISTRO="desktop"           #server, desktop, pop-os
+RELEASE="mantic"           # The short name of the release as it appears in the repository (mantic, jammy, etc). Set to "pop-os" for POP!_OS
+POPOS="false"              # Set to true for POP!_OS Installation
+DISK="sda"                 # Enter the disk name only (sda, sdb, nvme1, etc)
+PASSPHRASE="SomeRandomKey" # Encryption passphrase for "${POOLNAME}"
+PASSWORD="mypassword"      # temporary root password & password for ${USERNAME}
+HOSTNAME="myhost"          # hostname of the new machine
+USERNAME="myuser"          # user to create in the new machine
+MOUNTPOINT="/mnt"          # debootstrap target location
+LOCALE="en_US.UTF-8"       # New install language setting.
+TIMEZONE="Europe/Rome"     # New install timezone setting.
+RTL8821CE="false"          # Download and install RTL8821CE drivers as the default ones are faulty
 
 ## Auto-reboot at the end of installation? (true/false)
 REBOOT="false"
@@ -67,18 +68,37 @@ debug_me() {
 
 source /etc/os-release
 export ID
-export BOOT_DISK="${DISKID}"
-export BOOT_PART="1"
-export BOOT_DEVICE="${BOOT_DISK}-part${BOOT_PART}"
+setup_partitions() {
+  if [[ "POPOS" =~ "true" ]]; then
+    export BOOT_DISK="${DISKID}"
+    export BOOT_PART="1"
+    export BOOT_DEVICE="${BOOT_DISK}-part${BOOT_PART}"
 
-export SWAP_DISK="${DISKID}"
-export SWAP_PART="2"
-export SWAP_DEVICE="${SWAP_DISK}-part${SWAP_PART}"
+    export RECOVERY_DISK="${DISKID}"
+    export RECOVERY_PART="2"
+    export RECOVERY_DEVICE="${RECOVERY_DISK}-part${RECOVERY_PART}"
 
-export POOL_DISK="${DISKID}"
-export POOL_PART="3"
-export POOL_DEVICE="${POOL_DISK}-part${POOL_PART}"
+    export SWAP_DISK="${DISKID}"
+    export SWAP_PART="3"
+    export SWAP_DEVICE="${SWAP_DISK}-part${SWAP_PART}"
 
+    export POOL_DISK="${DISKID}"
+    export POOL_PART="4"
+    export POOL_DEVICE="${POOL_DISK}-part${POOL_PART}"
+  else
+    export BOOT_DISK="${DISKID}"
+    export BOOT_PART="1"
+    export BOOT_DEVICE="${BOOT_DISK}-part${BOOT_PART}"
+
+    export SWAP_DISK="${DISKID}"
+    export SWAP_PART="2"
+    export SWAP_DEVICE="${SWAP_DISK}-part${SWAP_PART}"
+
+    export POOL_DISK="${DISKID}"
+    export POOL_PART="3"
+    export POOL_DEVICE="${POOL_DISK}-part${POOL_PART}"
+  fi
+}
 debug_me
 
 # Swapsize autocalculated to be = Mem size
@@ -112,9 +132,16 @@ disk_prepare() {
   ## 8300 Linux file system
   ## FD00 Linux RAID
 
-  sgdisk -n "${BOOT_PART}:1m:+512m" -t "${BOOT_PART}:EF00" "${BOOT_DISK}"
-  sgdisk -n "${SWAP_PART}:0:${SWAPSIZE}" -t "${SWAP_PART}:8200" "${SWAP_DISK}"
-  sgdisk -n "${POOL_PART}:0:-10m" -t "${POOL_PART}:BF00" "${POOL_DISK}"
+  if [[ ${POPOS} = "true" ]]; then
+    sgdisk -n "${BOOT_PART}:1m:+512m" -t "${BOOT_PART}:EF00" "${BOOT_DISK}"
+    sgdisk -n "${RECOVERY_PART}:0:+4096m" -t "${RECOVERY_PART}:0700" "${RECOVERY_DISK}"
+    sgdisk -n "${SWAP_PART}:0:${SWAPSIZE}" -t "${SWAP_PART}:8200" "${SWAP_DISK}"
+    sgdisk -n "${POOL_PART}:0:-10m" -t "${POOL_PART}:BF00" "${POOL_DISK}"
+  else
+    sgdisk -n "${BOOT_PART}:1m:+512m" -t "${BOOT_PART}:EF00" "${BOOT_DISK}"
+    sgdisk -n "${SWAP_PART}:0:${SWAPSIZE}" -t "${SWAP_PART}:8200" "${SWAP_DISK}"
+    sgdisk -n "${POOL_PART}:0:-10m" -t "${POOL_PART}:BF00" "${POOL_DISK}"
+  fi
   sync
   sleep 2
   debug_me
@@ -195,8 +222,9 @@ ubuntu_debootstrap() {
   echo -e "root:$PASSWORD" | chpasswd -c SHA256
 EOCHROOT
 
-  # Set up APT sources
-  cat <<EOF >"${MOUNTPOINT}"/etc/apt/sources.list
+  if [[ ${POPOS} =~ "false" ]]; then
+    # Set up APT sources
+    cat <<EOF >"${MOUNTPOINT}"/etc/apt/sources.list
 # Uncomment the deb-src entries if you need source packages
 
 deb http://archive.ubuntu.com/ubuntu/ ${RELEASE} main restricted universe multiverse
@@ -211,7 +239,34 @@ deb http://archive.ubuntu.com/ubuntu/ ${RELEASE}-security main restricted univer
 deb http://archive.ubuntu.com/ubuntu/ ${RELEASE}-backports main restricted universe multiverse
 # deb-src http://archive.ubuntu.com/ubuntu/ ${RELEASE}-backports main restricted universe multiverse
 EOF
-
+  else
+    cat <<EOF >"${MOUNTPOINT}"/etc/apt/sources.list.d/pop-os-apps.sources
+X-Repolib-Name: Pop_OS Applications
+Enabled: yes
+Types: deb
+URIs: http://apt.pop-os.org/proprietary
+Suites: ${RELEASE}
+Components: main
+EOF
+    cat <<EOF >"${MOUNTPOINT}"/etc/apt/sources.list.d/pop-os-release.sources
+X-Repolib-Name: Pop_OS Release Sources
+Enabled: yes
+Types: deb deb-src
+URIs: http://apt.pop-os.org/release
+Suites: ${RELEASE}
+Components: main
+EOF
+    cat <<EOF >"${MOUNTPOINT}"/etc/apt/sources.list.d/system.sources
+X-Repolib-Name: Pop_OS System Sources
+Enabled: yes
+Types: deb deb-src
+URIs: http://apt.pop-os.org/ubuntu
+Suites: ${RELEASE} ${RELEASE}-security ${RELEASE}-updates ${RELEASE}-backports
+Components: main restricted universe multiverse
+X-Repolib-ID: system
+X-Repolib-Default-Mirror: http://apt.pop-os.org/ubuntu
+EOF
+  fi
   # Update the repository cache and system, install base packages, set up
   # console properties
   chroot "${MOUNTPOINT}" /bin/bash -x <<-EOCHROOT
@@ -414,6 +469,8 @@ install_ubuntu() {
 		##Minimal install: ubuntu-desktop-minimal
 			${APT} install -y ubuntu-desktop
 		;;
+    pop-os)
+      ${APT} install -y pop-desktop
     *)
     echo "No distro selected."
     ;;
@@ -492,9 +549,21 @@ rtl8821ce_install() {
 EOCHROOT
 }
 
+create_pop_recovery() {
+  echo "------------> Creating pop-recovery <------------"
+  mkfs.vfat -n RECOVERY "${RECOVERY_PART}"
+  sync
+  sleep 2
+  echo "UUID=$(blkid -s UUID -o value "${RECOVERY_PART}")  /recovery   0 0" >>/"${MOUNTPOINT}"/etc/fstab
+  chroot "${MOUNTPOINT}" /bin/bash -x <<-EOCHROOT
+  /usr/bin/pop-upgrade recovery upgrade from-release  
+EOCHROOT
+}
+
 ################################################################
 # MAIN Program
 initialize
+setup_partitions
 disk_prepare
 zfs_pool_create
 ubuntu_debootstrap
@@ -510,6 +579,9 @@ if [[ ${RTL8821CE} =~ "true" ]]; then
   rtl8821ce_install
 fi
 disable_root_login
+if [[ ${POPOS} =~ "true" ]]; then
+  create_pop_recovery
+fi
 cleanup
 
 if [[ ${REBOOT} =~ "true" ]]; then
