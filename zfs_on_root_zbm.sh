@@ -74,6 +74,7 @@ debug_me() {
 
 source /etc/os-release
 export ID
+
 setup_partitions() {
   if [[ ${POPOS} =~ "true" ]]; then
     export BOOT_DISK="${DISKID}"
@@ -104,8 +105,8 @@ setup_partitions() {
     export POOL_PART="3"
     export POOL_DEVICE="${POOL_DISK}-part${POOL_PART}"
   fi
+  debug_me
 }
-debug_me
 
 # Swapsize autocalculated to be = Mem size
 SWAPSIZE=$(free --giga | grep Mem | awk '{OFS="";print "+", $2 ,"G"}')
