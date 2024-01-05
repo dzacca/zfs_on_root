@@ -568,7 +568,7 @@ create_pop_recovery() {
   mkfs.vfat -n RECOVERY "${RECOVERY_DEVICE}"
   sync
   sleep 2
-  echo "UUID=$(blkid -s UUID -o value "${RECOVERY_DEVICE}")  /recovery   0 0" >>/"${MOUNTPOINT}"/etc/fstab
+  echo "UUID=$(blkid -s UUID -o value "${RECOVERY_DEVICE}")  /recovery vfat umask=0077 0 0" >>/"${MOUNTPOINT}"/etc/fstab
   #  chroot "${MOUNTPOINT}" /bin/bash -x <<-EOCHROOT
   /usr/bin/pop-upgrade recovery upgrade from-release
   #EOCHROOT
