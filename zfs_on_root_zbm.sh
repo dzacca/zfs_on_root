@@ -58,6 +58,7 @@ debug_me() {
     echo "POOL_DEVICE: ${POOL_DEVICE}"
     echo "DISK: ${DISK}"
     echo "DISKID: ${DISKID}"
+    echo "POPOS: ${POPOS}"
     if [[ -x /usr/sbin/fdisk ]]; then
       /usr/sbin/fdisk -l "${DISKID}"
     fi
@@ -74,7 +75,7 @@ debug_me() {
 source /etc/os-release
 export ID
 setup_partitions() {
-  if [[ "${POPOS}" =~ "true" ]]; then
+  if [[ ${POPOS} =~ "true" ]]; then
     export BOOT_DISK="${DISKID}"
     export BOOT_PART="1"
     export BOOT_DEVICE="${BOOT_DISK}-part${BOOT_PART}"
