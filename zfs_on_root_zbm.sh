@@ -7,7 +7,6 @@ RUN="false"
 # Variables - Populate/tweak this before launching the script
 DISTRO="desktop"           #server, desktop, pop-os
 RELEASE="mantic"           # The short name of the release as it appears in the repository (mantic, jammy, etc). Set to "pop-os" for POP!_OS
-POPOS="false"              # Set to true for POP!_OS Installation
 DISK="sda"                 # Enter the disk name only (sda, sdb, nvme1, etc)
 PASSPHRASE="SomeRandomKey" # Encryption passphrase for "${POOLNAME}"
 PASSWORD="mypassword"      # temporary root password & password for ${USERNAME}
@@ -32,6 +31,12 @@ POOLNAME="zroot" #"${POOLNAME}" is the default name used in the HOW TO from ZFSB
 if [[ ${RUN} =~ "false" ]]; then
   echo "Refusing to run as \$RUN is set to false"
   exit 1
+fi
+
+if [[ ${DISTRO} =~ "pop-os" ]]; then
+  export POPOS="true"
+else
+  export POPOS="false"
 fi
 
 DISKID=/dev/disk/by-id/$(ls -al /dev/disk/by-id | grep ${DISK} | awk '{print $9}' | head -1)
@@ -109,6 +114,9 @@ export SWAPSIZE
 initialize() {
   apt update
   apt install -y debootstrap gdisk zfsutils-linux vim git curl nala
+  if [[ $POPOS == "true" ]]; then
+    apt install -y zfs-dkms
+  fi
   zgenhostid -f 0x00bab10c
 }
 
@@ -272,7 +280,10 @@ EOF
   chroot "${MOUNTPOINT}" /bin/bash -x <<-EOCHROOT
   ${APT} update
   ${APT} upgrade -y
-  ${APT} install -y --no-install-recommends linux-generic locales keyboard-configuration console-setup curl nala git
+  ${APT} install -y --no-install-recommends linux-generic locales keyboard-configuration console-setup curl nala git 
+  if [[ ${POPOS} == "true" ]]; then
+    ${APT} install -y zfs-dkms zfsutils-linux
+  fi
 EOCHROOT
 
   chroot "$MOUNTPOINT" /bin/bash -x <<-EOCHROOT
