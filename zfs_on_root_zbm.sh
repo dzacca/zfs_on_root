@@ -116,6 +116,7 @@ initialize() {
   apt install -y debootstrap gdisk zfsutils-linux vim git curl nala
   if [[ $POPOS == "true" ]]; then
     apt install -y zfs-dkms
+    modprobe zfs
   fi
   zgenhostid -f 0x00bab10c
 }
