@@ -485,6 +485,7 @@ install_ubuntu() {
 		;;
     pop-os)
       ${APT} install -y pop-desktop
+    ;;
     *)
     echo "No distro selected."
     ;;
