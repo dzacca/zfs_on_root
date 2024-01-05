@@ -569,9 +569,9 @@ create_pop_recovery() {
   sync
   sleep 2
   echo "UUID=$(blkid -s UUID -o value "${RECOVERY_DEVICE}")  /recovery   0 0" >>/"${MOUNTPOINT}"/etc/fstab
-  chroot "${MOUNTPOINT}" /bin/bash -x <<-EOCHROOT
-  /usr/bin/pop-upgrade recovery upgrade from-release  
-EOCHROOT
+  #  chroot "${MOUNTPOINT}" /bin/bash -x <<-EOCHROOT
+  /usr/bin/pop-upgrade recovery upgrade from-release
+  #EOCHROOT
 }
 
 ################################################################
