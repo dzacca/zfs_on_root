@@ -92,3 +92,6 @@ Enter the machine set-up menu at boot time and change the boot order to use rEFI
 ### To Do
 
 - add options for more customisation
+
+### Contributors
+- https://github.com/VVSShh
