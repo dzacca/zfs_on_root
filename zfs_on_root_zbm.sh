@@ -251,7 +251,7 @@ ZBM_install() {
   # Create an fstab entry and mount
   echo "------------> Installing ZFSBootMenu <------------"
   cat <<EOF >>${MOUNTPOINT}/etc/fstab
-$(blkid | grep -E "^/dev/${DISK}(p)?${BOOT_PART}"| cut -d ' ' -f 2) /boot/efi vfat defaults 0 0
+$(blkid | grep -E "${DISK}(p)?${BOOT_PART}" | cut -d ' ' -f 2) /boot/efi vfat defaults 0 0
 EOF
 
   mkdir -p "${MOUNTPOINT}"/boot/efi
